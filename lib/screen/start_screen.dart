@@ -3,9 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:scan_hsmpk/funtion/txtbox.dart';
 import 'package:scan_hsmpk/screen/inputorder_screen.dart';
+import 'package:scan_hsmpk/util/utility.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 class StartScreen extends StatelessWidget {
   final SizedBox w50 = SizedBox(width: 50,);
   final SizedBox h50 = SizedBox(height: 50,);
+  TextEditingController txtPerID = TextEditingController();
+  _onSave() async {
+    SharedPreferences myPrefs = await SharedPreferences.getInstance();
+    myPrefs.setString('sPerID',txtPerID.text);
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -36,7 +44,7 @@ class StartScreen extends StatelessWidget {
                     children: <Widget>[
                       Expanded(
                           child: Text('Scan-HSMPK',
-                            style: TextStyle(fontSize: 50,color: Colors.white,),
+                            style: TextStyle(fontSize: 50,color: Colors.white,fontFamily: 'Millionaire',),
                             textAlign: TextAlign.center,
                           ),
                       )
@@ -50,13 +58,13 @@ class StartScreen extends StatelessWidget {
                         flex: 1,
                           child: FaIcon(FontAwesomeIcons.users,
                           size: 30,
-                            color: Colors.white,
+                            color: Util.mainWhite,
                           ),
                       ),
                       SizedBox(width: 20,),
                       Expanded(
                         flex: 9,
-                        child: TxtBox(),
+                        child: TxtBox(hintText:'ระบุรหัสประจำตัวพนักงาน',textAlign: TextAlign.center,ctrl: txtPerID,),
                       ),
                       w50,
                     ],
@@ -65,8 +73,9 @@ class StartScreen extends StatelessWidget {
                     margin: EdgeInsets.only(top: 30),
                     child:
                     RaisedButton(
-                      child: Text('Test'),
+                      child: Text('เข้าสู่ระบบ',style: Util.txtStyleNormal,),
                       onPressed: (){
+                        _onSave();
                         Navigator.push(context, MaterialPageRoute(builder: (context) => InputOrderScreen(),));
                       },
                     ),
