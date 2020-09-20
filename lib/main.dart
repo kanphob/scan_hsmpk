@@ -16,7 +16,6 @@ class MyApp extends StatelessWidget {
         appBarTheme: AppBarTheme(
           color: Util.mainOrange,
         ),
-        visualDensity: VisualDensity.adaptivePlatformDensity,
         // fontFamily: 'Millionaire',
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(
