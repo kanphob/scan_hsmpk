@@ -26,20 +26,13 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
   Firestore firebaseStore = Firestore.instance;
   DataRepository repository = DataRepository();
 
+
   _getData() async {
     SharedPreferences myPrefs = await SharedPreferences.getInstance();
     final String sId = myPrefs.getString('sPerID');
     sPerId = sId;
   }
 
-  _processAddProduct() async {
-    if (sBarcode != null && sBarcode != '') {
-      String bar = sBarcode;
-      int iRet = 0;
-      lOrder.clear();
-      // List<Map> lm = a
-    }
-  }
 
   @override
   void initState() {
@@ -85,56 +78,52 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
+                  // Container(
+                  //   margin: submitOrder
+                  //       ? EdgeInsets.only(top: 20, bottom: 20)
+                  //       : EdgeInsets.only(top: 300, bottom: 20),
+                  //   child: inputUnitOrder(),
+                  // ),
+                  SizedBox(
+                    height: 10,
+                  ),
                   Container(
-                    margin: submitOrder
-                        ? EdgeInsets.only(top: 20, bottom: 20)
-                        : EdgeInsets.only(top: 300, bottom: 20),
-                    child: inputUnitOrder(),
+                    padding: EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade500,
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(color: Colors.orange.shade600),
+                    ),
+                    child: FlatButton.icon(
+                        onPressed: () {
+                          _saveData();
+                        },
+                        icon: Icon(
+                          Icons.save,
+                          color: Colors.white,
+                        ),
+                        label: Text(
+                          "บันทึก",
+                          style: TextStyle(color: Colors.white),
+                        )),
                   ),
                   SizedBox(
                     height: 10,
                   ),
-                  submitOrder
-                      ? Container(
-                          padding: EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.shade500,
-                            borderRadius: BorderRadius.circular(15),
-                            border: Border.all(color: Colors.orange.shade600),
-                          ),
-                          child: FlatButton.icon(
-                              onPressed: () {
-                                _saveData();
-                              },
-                              icon: Icon(
-                                Icons.save,
-                                color: Colors.white,
-                              ),
-                              label: Text(
-                                "บันทึก",
-                                style: TextStyle(color: Colors.white),
-                              )),
-                        )
-                      : Container(),
-                  SizedBox(
-                    height: 10,
+                  Container(
+                    margin: EdgeInsets.only(
+                        top: 5, bottom: 5, left: 20, right: 20),
+                    padding: EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5),
+                        border: Border.all(color: Util.mainWhite)),
+                    child: showData(),
                   ),
-                  submitOrder
-                      ? Container(
-                          margin: EdgeInsets.only(
-                              top: 5, bottom: 5, left: 20, right: 20),
-                          padding: EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(5),
-                              border: Border.all(color: Util.mainWhite)),
-                          child: showData(),
-                        )
-                      : Container(),
                 ],
               ),
             ),
           ),
-          floatingActionButton: submitOrder ? plusOrder() : Container(),
+          floatingActionButton: plusOrder(),
         ),
       ),
     );
@@ -175,7 +164,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     );
   }
 
-  Widget inputUnitOrder() {
+  Widget _inputUnitOrder() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -235,8 +224,8 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     return Column(
       children: <Widget>[
         ListTile(
-          title: Text(
-            "Barcode", style: TextStyle(fontWeight: FontWeight.w600),),
+          leading: Text('No.'),
+          title: Text('Barcode'),
         ),
         Container(
           padding: EdgeInsets.symmetric(horizontal: 5),
@@ -247,20 +236,25 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
             physics: BouncingScrollPhysics(),
             itemCount: lOrder.length,
             itemBuilder: (context, index) {
-              return Column(children: <Widget>[
-                _listOrder(lOrder[index]),
+              return Column(
+                children: <Widget>[
+                _listOrder(lOrder[index],index),
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 10),
                   child: Divider(height: 1, color: Colors.orange,),
                 ),
               ],);
             }),
+        ListTile(
+          trailing: Text('จำนวนทั้งหมด '+ lOrder.length.toString() + ' ชิ้น.'),
+        ),
       ],
     );
   }
 
-  Widget _listOrder(ModelProduct md) {
+  Widget _listOrder(ModelProduct md,int index) {
     return ListTile(
+      leading: Text((index+1).toString()),
       title: Text(md.getsBarcode),
     );
   }
@@ -276,7 +270,9 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
 
   Widget willPop() {
     return AlertDialog(
+      elevation: 5,
       title: Text('คุณต้องการออกจากแอบพลิเคชั่น'),
+      titleTextStyle: TextStyle(fontSize: 20,color: Colors.black),
       actions: <Widget>[
         RaisedButton(
           child: Text('ใช่'),
