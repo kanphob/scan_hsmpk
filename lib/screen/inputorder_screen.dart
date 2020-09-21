@@ -147,9 +147,14 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           Expanded(
-            child: Text(
-              'Scan-HSMPK',
-              style: TextStyle(fontFamily: 'Millionaire', fontSize: 25),
+            child: GestureDetector(
+              child: Text(
+                'Scan-HSMPK',
+                style: TextStyle(fontFamily: 'Millionaire', fontSize: 25),
+              ),
+              onTap: () {
+                print(lOrder.length);
+              },
             ),
           ),
           Expanded(
@@ -301,11 +306,48 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
 
   Future scan() async {
     try {
-      String barcode = await BarcodeScanner.scan();
-      ModelProduct md = ModelProduct();
-      md.setsBarcode = barcode;
-      setState(() {
+      String barcode = "";
+      barcode = await BarcodeScanner.scan();
+      if (lOrder.length > 0) {
+        bool bHaveData = false;
+        for (int i = 0; i < lOrder.length; i++) {
+          String sBarcode = lOrder[i].getsBarcode;
+          if (sBarcode == barcode) {
+            bHaveData = true;
+          }
+        }
+        if (!bHaveData) {
+          ModelProduct md = ModelProduct();
+          md.setsBarcode = barcode;
+          lOrder.add(md);
+        } else {
+          showDialog(
+              context: context,
+              builder: (_) {
+                return AlertDialog(
+                  title: Text("รหัสบาร์โค้ดซ้ำ.."),
+                  actions: <Widget>[
+                    FlatButton.icon(
+                        onPressed: () => Navigator.pop(context),
+                        icon: Icon(
+                          Icons.close,
+                          color: Colors.grey,
+                        ),
+                        label: Text(
+                          "ปิด",
+                          style: TextStyle(color: Colors.grey),
+                        ))
+                  ],
+                );
+              });
+        }
+      } else {
+        ModelProduct md = ModelProduct();
+        md.setsBarcode = barcode;
         lOrder.add(md);
+      }
+      setState(() {
+
       });
     } on PlatformException catch (e) {
       if (e.code == BarcodeScanner.CameraAccessDenied) {
