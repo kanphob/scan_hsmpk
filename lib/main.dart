@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // title: 'Scan_HSMPK',
+      // title: 'scan_hsmpk',
       theme: ThemeData(
         appBarTheme: AppBarTheme(
           color: Util.mainOrange,

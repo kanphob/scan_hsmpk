@@ -5,7 +5,7 @@ import 'package:scan_hsmpk/model/modelProduct.dart';
 class DataRepository {
   // 1
   final CollectionReference collection =
-      Firestore.instance.collection('product');
+      Firestore.instance.collection('products');
 
   // 2
   Stream<QuerySnapshot> getStream() {

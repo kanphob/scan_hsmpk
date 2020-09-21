@@ -49,7 +49,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
 
   _saveData() async {
     for (int i = 0; i < lOrder.length; i++) {
-      await repository.addProduct(lOrder[i]);
+        await repository.addProduct(lOrder[i]);
     }
   }
 
