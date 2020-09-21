@@ -18,3 +18,16 @@ class ModelProduct {
         'barcode': instance._sBarcode,
       };
 }
+class Company {
+  int id;
+  String name;
+
+  Company(this.id, this.name);
+
+  static List<Company> getCompanies() {
+    return <Company>[
+      Company(101, 'สมุทรปราการ'),
+      Company(102, 'พญาไทย'),
+    ];
+  }
+}
