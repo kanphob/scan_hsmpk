@@ -18,8 +18,6 @@ class StartScreen extends StatefulWidget {
 }
 
 class _StartScreenState extends State<StartScreen> {
-  final SizedBox w50 = SizedBox(width: 50,);
-  final SizedBox h50 = SizedBox(height: 50,);
   TextEditingController txtPerID = TextEditingController();
   List<Company> _companies = Company.getCompanies();
   List<DropdownMenuItem<Company>> _dropdownMenuItems;
@@ -84,16 +82,24 @@ class _StartScreenState extends State<StartScreen> {
                   children: <Widget>[
                     Expanded(
                       child: Text('Scan-HSMPK',
-                        style: TextStyle(fontSize: 50,color: Colors.white,fontFamily: 'Millionaire',),
+                        style: TextStyle(fontSize: 50,color: Colors.white,fontFamily: 'Millionaire',
+                          shadows: <Shadow>[
+                            Shadow(
+                              offset: Offset(5.0, 5.0),
+                              blurRadius: 5.0,
+                              color: Colors.black,
+                            ),
+                          ]
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     )
                   ],
                 ),
-                h50,
+                Util.h50,
                 Row(
                   children: <Widget>[
-                    w50,
+                    Util.w50,
                     Expanded(
                       flex: 1,
                       child: FaIcon(FontAwesomeIcons.users,
@@ -106,7 +112,7 @@ class _StartScreenState extends State<StartScreen> {
                       flex: 9,
                       child: TxtBox(hintText:'ระบุรหัสประจำตัวพนักงาน',textAlign: TextAlign.center,ctrl: txtPerID,),
                     ),
-                    w50,
+                    Util.w50,
                   ],
                 ),
                 SizedBox(height: 10,),
@@ -114,7 +120,7 @@ class _StartScreenState extends State<StartScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    w50,
+                    Util.w50,
                     Expanded(
                       child: Container(
                         decoration: BoxDecoration(
@@ -136,7 +142,7 @@ class _StartScreenState extends State<StartScreen> {
                         ),
                       ),
                     ),
-                    w50,
+                    Util.w50,
                   ],
                 ),
                 Container(
