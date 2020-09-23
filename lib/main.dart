@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:scan_hsmpk/screen/start_screen.dart';
 import 'package:scan_hsmpk/util/utility.dart';
+import 'package:flutter_line_sdk/flutter_line_sdk.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  LineSDK.instance.setup("1654959842").then((_) {
+    print("LineSDK Prepared");
+  });
   runApp(MyApp());
 }
 

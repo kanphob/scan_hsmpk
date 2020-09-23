@@ -1,18 +1,58 @@
-class ModelNotify{
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class ModelNotify {
   String _sBarcode;
   String _sCount;
   String _sTotalItem;
   String _sName;
   String _sDate;
   String _sTime;
+  String _sFullDateTime;
+
+  String _sBranch;
+  DocumentReference sDocumentReference;
 
   String get getBarcode => _sBarcode;
+
+  Map<String, dynamic> toJson() => _modelProductToJson(this);
+
+  Map<String, dynamic> _modelProductToJson(ModelNotify instance) =>
+      <String, dynamic>{
+        'barcode': instance._sBarcode,
+        'count': instance._sCount,
+        'total': instance._sTotalItem,
+        'name': instance._sName,
+        'date': instance._sDate,
+        'time': instance._sTime,
+        'fulldate': instance._sFullDateTime,
+        'branch': instance._sBranch,
+        'document': instance.sDocumentReference,
+      };
+
+  String get sFullDateTime => _sFullDateTime;
+
+  set sFullDateTime(String value) {
+    _sFullDateTime = value;
+  }
 
   set setBarcode(String value) {
     _sBarcode = value;
   }
 
+  String get getBranch => _sBranch;
+
+  set setBranch(String value) {
+    _sBranch = value;
+  }
+
+  DocumentReference get getDocRef => sDocumentReference;
+
+  set setDocRef(DocumentReference value) {
+    sDocumentReference = value;
+  }
+
   String get getCount => _sCount;
+
   set setCount(String value) {
     _sCount = value;
   }

@@ -28,7 +28,9 @@ dependencies:
   shared_preferences: ^0.5.10
   barcode_scan: ^1.0.0
   cloud_firestore: ^0.12.9+5
-  fluttertoast: ^7.1.1
+  flutter_line_sdk: ^1.2.1
+  http:
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

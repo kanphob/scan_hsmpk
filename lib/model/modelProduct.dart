@@ -18,6 +18,7 @@ class ModelProduct {
         'barcode': instance._sBarcode,
       };
 }
+
 class Company {
   int id;
   String name;

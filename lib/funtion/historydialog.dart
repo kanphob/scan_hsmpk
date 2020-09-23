@@ -1,10 +1,9 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:scan_hsmpk/screen/historyOrder_screen.dart';
 import 'package:scan_hsmpk/util/utility.dart';
+import 'package:scan_hsmpk/screen/historyOrder_screen.dart';
 
 Future passWordHistory(BuildContext context) async {
   String teamName = '';
@@ -50,14 +49,4 @@ Future passWordHistory(BuildContext context) async {
   );
 }
 
-_show(){
-  Fluttertoast.showToast(
-      msg: "คุณไม่มีสิทธิ์ใช้งานเมนูนี้ค่ะ",
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.CENTER,
-      timeInSecForIosWeb: 1,
-      backgroundColor: Util.mainOrange,
-      textColor: Colors.white,
-      fontSize: 16.0
-  );
-}
+_show(){}

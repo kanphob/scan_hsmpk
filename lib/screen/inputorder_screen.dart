@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,9 +9,13 @@ import 'package:scan_hsmpk/database.dart';
 import 'package:scan_hsmpk/funtion/txtbox.dart';
 import 'package:scan_hsmpk/menu/sidebar.dart';
 import 'package:scan_hsmpk/model/modelProduct.dart';
+import 'package:scan_hsmpk/model/modelnotify.dart';
 import 'package:scan_hsmpk/util/utility.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_line_sdk/flutter_line_sdk.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class InputOrderScreen extends StatefulWidget {
   @override
@@ -21,20 +27,20 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
   TextEditingController amountTxtController = TextEditingController();
   String sPerId = ' ';
   String sBarcode = "";
-  List<ModelProduct> lOrder = [];
+  List<ModelNotify> lOrder = [];
   ModelProduct modelProduct = ModelProduct();
   Firestore firebaseStore = Firestore.instance;
   DataRepository repository = DataRepository();
-
+  final DateFormat formatterDate = DateFormat('yyyy-MM-dd');
+  final DateFormat formatterTime = DateFormat('HH:mm');
+  String sSaveTime = "";
 
   _getData() async {
     SharedPreferences myPrefs = await SharedPreferences.getInstance();
     final String sId = myPrefs.getString('sPerID');
     sPerId = sId;
-    setState(() {
-    });
+    setState(() {});
   }
-
 
   @override
   void initState() {
@@ -42,9 +48,100 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     super.initState();
   }
 
-  _saveData() async {
-    for (int i = 0; i < lOrder.length; i++) {
+  Future<bool> _saveData() async {
+    if (lOrder.length > 0) {
+      DateTime dtCurrentDate = DateTime(
+          DateTime.now().year,
+          DateTime.now().month,
+          DateTime.now().day,
+          DateTime.now().hour,
+          DateTime.now().minute);
+      for (int i = 0; i < lOrder.length; i++) {
+        lOrder[i].setTotalItem = lOrder.length.toString();
+        lOrder[i].setDate = formatterDate.format(dtCurrentDate);
+        lOrder[i].setTime = formatterTime.format(dtCurrentDate);
+        sSaveTime = formatterTime.format(dtCurrentDate);
+        lOrder[i].sFullDateTime = dtCurrentDate.toString();
+        lOrder[i].setTotalItem = lOrder.length.toString();
         await repository.addProduct(lOrder[i]);
+      }
+      return true;
+    } else {
+      showDialog(
+          context: context,
+          builder: (_) {
+            return AlertDialog(
+              title: Text("คุณยังไม่ได้ทำการเพิ่มสินค้า"),
+            );
+          });
+      return false;
+    }
+  }
+
+  Future<int> sendMsg(String title) async {
+    final uri = 'https://notify-api.line.me/api/notify';
+
+    http.Response response = await http.post(
+      uri,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": "Bearer cqJfwRExjZfR9aAZPTFJuAu0wmKNYvh0kO2iwLRIQcE",
+      },
+      body: {
+        "message": title,
+      },
+    );
+  }
+
+  Future getAccessToken() async {
+    try {
+      final result = await LineSDK.instance.currentAccessToken;
+      return result.value;
+    } on PlatformException catch (e) {
+      print(e.message);
+    }
+  }
+
+  void startLineLogin() async {
+    try {
+      final result = await LineSDK.instance.login(scopes: ["profile"]);
+      print(result.toString());
+      var accesstoken = await getAccessToken();
+      var displayname = result.userProfile.displayName;
+      var statusmessage = result.userProfile.statusMessage;
+      var imgUrl = result.userProfile.pictureUrl;
+      var userId = result.userProfile.userId;
+
+      print("AccessToken> " + accesstoken);
+      print("DisplayName> " + displayname);
+      print("StatusMessage> " + statusmessage);
+      print("ProfileURL> " + imgUrl);
+      print("userId> " + userId);
+    } on PlatformException catch (e) {
+      print(e);
+      switch (e.code.toString()) {
+        case "CANCEL":
+          print("User Cancel the login");
+          break;
+        case "AUTHENTICATION_AGENT_ERROR":
+          print("User decline the login");
+          break;
+        default:
+          print("Unknown but failed to login");
+          break;
+      }
+    }
+  }
+
+  Future _signInLine() async {
+    try {
+      final result = await LineSDK.instance.login();
+      // user id -> result.userProfile.userId
+      // user name -> result.userProfile.displayName
+      // user avatar -> result.userProfile.pictureUrl
+      return result;
+    } on PlatformException catch (e) {
+      print("ไม่สามารเปิดใช้งานได้");
     }
   }
 
@@ -97,8 +194,53 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                       border: Border.all(color: Colors.orange.shade600),
                     ),
                     child: FlatButton.icon(
-                        onPressed: () {
-                          _saveData();
+                        onPressed: () async {
+                          String sName = "";
+                          String sTotalCount = "";
+                          List<String> listBarcode = new List();
+                          bool bSaveSuccess = await _saveData();
+                          if (bSaveSuccess) {
+                            await firebaseStore.collection("products")
+                                .getDocuments()
+                                .then((querySnapshot) {
+                              querySnapshot.documents.where((element) {
+                                if (element.data['time'] == sSaveTime) {
+                                  return true;
+                                } else {
+                                  return false;
+                                }
+                              }).forEach((result) {
+                                sName = result.data['name'];
+                                sTotalCount = result.data['total'];
+                                listBarcode.add(result.data['barcode']);
+                              });
+                            }
+                            );
+
+                            String decodeListBarcode = "";
+                            for (int i = 0; i < listBarcode.length; i++) {
+                              if (i == 0) {
+                                decodeListBarcode +=
+                                ((i + 1).toString() + ". " + listBarcode[i]);
+                              } else {
+                                decodeListBarcode +=
+                                ("\n" + (i + 1).toString() + ". " +
+                                    listBarcode[i]);
+                              }
+                            }
+                            String sResultTxt = "รหัสพนักงาน: $sName\nจำนวนออเดอร์: $sTotalCount ชิ้น\n$decodeListBarcode";
+                            lOrder.clear();
+                            showDialog(context: context, builder: (_) {
+                              return AlertDialog(
+                                title: Text(
+                                    "บันทึกสำเร็จ! ระบบจะส่งข้อความแจ้งเตือนไปในอีกสักครู่"),
+                              );
+                            });
+                            await sendMsg(sResultTxt);
+                            setState(() {
+
+                            });
+                          }
                         },
                         icon: Icon(
                           Icons.save,
@@ -113,8 +255,8 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                     height: 10,
                   ),
                   Container(
-                    margin: EdgeInsets.only(
-                        top: 5, bottom: 5, left: 20, right: 20),
+                    margin:
+                    EdgeInsets.only(top: 5, bottom: 5, left: 20, right: 20),
                     padding: EdgeInsets.all(5),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(5),
@@ -143,9 +285,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                 'Scan-HSMPK',
                 style: TextStyle(fontFamily: 'Millionaire', fontSize: 25),
               ),
-              onTap: () {
-                print(lOrder.length);
-              },
+              onTap: () {},
             ),
           ),
           Expanded(
@@ -223,61 +363,48 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
   }
 
   Widget showData() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Util.mainBlue,
-        borderRadius: BorderRadius.circular(5),
-
-      ),
-      child: Column(
-        children: <Widget>[
-          ListTile(
-            contentPadding: Util.padding5,
-            leading: Text('No.',style: Util.txtStyleField,),
-            title: Text('Barcode',style: Util.txtStyleField,),
+    return Column(
+      children: <Widget>[
+        ListTile(
+          leading: Text('No.'),
+          title: Text('Barcode'),
+        ),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 5),
+          child: Divider(
+            height: 1,
+            color: Colors.orange,
           ),
-          Divider(
-            height: 0,
-            color: Util.mainOrange,
-          ),
-          SizedBox(height: 10,),
-          ListView.builder(
-              shrinkWrap: true,
-              physics: BouncingScrollPhysics(),
-              itemCount: lOrder.length,
-              itemBuilder: (context, index) {
-                return Column(
-                  children: <Widget>[
-                    _listOrder(lOrder[index],index),
-                    Container(
-                      // padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: Divider(height: 0, color: Util.mainOrange,),
+        ),
+        ListView.builder(
+            shrinkWrap: true,
+            physics: BouncingScrollPhysics(),
+            itemCount: lOrder.length,
+            itemBuilder: (context, index) {
+              return Column(
+                children: <Widget>[
+                  _listOrder(lOrder[index], index),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Divider(
+                      height: 1,
+                      color: Colors.orange,
                     ),
-                  ],);
-              }),
-          ListTile(
-            trailing: Text('จำนวนทั้งหมด '+ lOrder.length.toString() + ' ชิ้น.',
-              style: Util.txtStyleField,
-            ),
-          ),
-        ],
-      ),
+                  ),
+                ],
+              );
+            }),
+        ListTile(
+          trailing: Text('จำนวนทั้งหมด ' + lOrder.length.toString() + ' ชิ้น.'),
+        ),
+      ],
     );
   }
 
-  Widget _listOrder(ModelProduct md,int index) {
-    return Container(
-      decoration: BoxDecoration(
-          color: Util.mainWhite
-      ),
-      child: ListTile(
-        leading: Text((index+1).toString(),
-          style: Util.txtStyleRecord,
-        ),
-        title: Text(md.getsBarcode,
-          style: Util.txtStyleRecord,
-        ),
-      ),
+  Widget _listOrder(ModelNotify md, int index) {
+    return ListTile(
+      leading: Text((index + 1).toString()),
+      title: Text(md.getBarcode),
     );
   }
 
@@ -294,7 +421,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     return AlertDialog(
       elevation: 5,
       title: Text('คุณต้องการออกจากแอบพลิเคชั่น'),
-      titleTextStyle: TextStyle(fontSize: 20,color: Colors.black),
+      titleTextStyle: TextStyle(fontSize: 20, color: Colors.black),
       actions: <Widget>[
         RaisedButton(
           child: Text('ใช่'),
@@ -329,14 +456,16 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
       if (lOrder.length > 0) {
         bool bHaveData = false;
         for (int i = 0; i < lOrder.length; i++) {
-          String sBarcode = lOrder[i].getsBarcode;
+          String sBarcode = lOrder[i].getBarcode;
           if (sBarcode == barcode) {
             bHaveData = true;
           }
         }
         if (!bHaveData) {
-          ModelProduct md = ModelProduct();
-          md.setsBarcode = barcode;
+          ModelNotify md = ModelNotify();
+          md.setBarcode = barcode;
+          md.setCount = "1";
+          md.setName = sPerId;
           lOrder.add(md);
         } else {
           showDialog(
@@ -360,13 +489,13 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
               });
         }
       } else {
-        ModelProduct md = ModelProduct();
-        md.setsBarcode = barcode;
+        ModelNotify md = ModelNotify();
+        md.setBarcode = barcode;
+        md.setCount = "1";
+        md.setName = sPerId;
         lOrder.add(md);
       }
-      setState(() {
-
-      });
+      setState(() {});
     } on PlatformException catch (e) {
       if (e.code == BarcodeScanner.CameraAccessDenied) {
         setState(() {
