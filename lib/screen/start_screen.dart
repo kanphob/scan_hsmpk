@@ -27,7 +27,13 @@ class _StartScreenState extends State<StartScreen> {
   _onSave() async {
     SharedPreferences myPrefs = await SharedPreferences.getInstance();
     myPrefs.setString('sPerID',txtPerID.text);
+    String sResult = myPrefs.getString('sPerID');
+    if(sResult == txtPerID.text) {
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => InputOrderScreen(),));
+    }
   }
+
   List<DropdownMenuItem<Company>> buildDropdownMenuItems(List companies) {
     List<DropdownMenuItem<Company>> items = List();
     for (Company company in companies) {
@@ -160,16 +166,15 @@ class _StartScreenState extends State<StartScreen> {
                   child:
                   RaisedButton(
                     child: Text('เข้าสู่ระบบ',style: Util.txtStyleNormal,),
-                    onPressed: (){
-                      setState(() {
-                        if(txtPerID.text.isEmpty){
-                          _validate = true;
+                    onPressed: () async {
+                      if(txtPerID.text.isEmpty){
+                        _validate = true;
+                        setState(() {});
                         } else {
-                          _validate = false;
-                          _onSave();
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => InputOrderScreen(),));
-                        }
-                      });
+                        _validate = false;
+                        await _onSave();
+                      }
+
                     },
                   ),
                 ),
