@@ -8,7 +8,7 @@
 
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="scan_hsmpk"
+        android:label="Scan-HSMPK"
         android:icon="@mipmap/ic_launcher">
 
         <activity

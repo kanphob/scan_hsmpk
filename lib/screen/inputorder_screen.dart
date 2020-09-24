@@ -260,7 +260,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                     padding: EdgeInsets.all(5),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(5),
-                        border: Border.all(color: Util.mainWhite)),
+                        border: Border.all(color: Util.mainBlue)),
                     child: showData(),
                   ),
                 ],
@@ -363,48 +363,64 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
   }
 
   Widget showData() {
-    return Column(
-      children: <Widget>[
-        ListTile(
-          leading: Text('No.'),
-          title: Text('Barcode'),
-        ),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 5),
-          child: Divider(
-            height: 1,
-            color: Colors.orange,
+    return Container(
+      decoration: BoxDecoration(
+        color: Util.mainWhite,
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Column(
+        children: <Widget>[
+          ListTile(
+            leading: Text('No.',
+            style: Util.txtStyleField,
+            ),
+            title: Text('Barcode',
+              style: Util.txtStyleField,
+            ),
           ),
-        ),
-        ListView.builder(
-            shrinkWrap: true,
-            physics: BouncingScrollPhysics(),
-            itemCount: lOrder.length,
-            itemBuilder: (context, index) {
-              return Column(
-                children: <Widget>[
-                  _listOrder(lOrder[index], index),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10),
-                    child: Divider(
-                      height: 1,
-                      color: Colors.orange,
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 5),
+            child: Divider(
+              height: 1,
+              color: Colors.orange,
+            ),
+          ),
+          ListView.builder(
+              shrinkWrap: true,
+              physics: BouncingScrollPhysics(),
+              itemCount: lOrder.length,
+              itemBuilder: (context, index) {
+                return Column(
+                  children: <Widget>[
+                    _listOrder(lOrder[index], index),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: Divider(
+                        height: 0,
+                        color: Colors.orange,
+                      ),
                     ),
-                  ),
-                ],
-              );
-            }),
-        ListTile(
-          trailing: Text('จำนวนทั้งหมด ' + lOrder.length.toString() + ' ชิ้น.'),
-        ),
-      ],
+                  ],
+                );
+              }),
+          ListTile(
+            trailing: Text('จำนวนทั้งหมด ' + lOrder.length.toString() + ' ชิ้น.',
+              style: Util.txtStyleField,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _listOrder(ModelNotify md, int index) {
     return ListTile(
-      leading: Text((index + 1).toString()),
-      title: Text(md.getBarcode),
+      leading: Text((index + 1).toString(),
+        style: Util.txtStyleRecord,
+      ),
+      title: Text(md.getBarcode,
+        style: Util.txtStyleRecord,
+      ),
     );
   }
 
