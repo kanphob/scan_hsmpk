@@ -22,6 +22,7 @@ class _StartScreenState extends State<StartScreen> {
   List<Company> _companies = Company.getCompanies();
   List<DropdownMenuItem<Company>> _dropdownMenuItems;
   Company _selectedCompany;
+  bool _validate = false;
 
   _onSave() async {
     SharedPreferences myPrefs = await SharedPreferences.getInstance();
@@ -45,6 +46,7 @@ class _StartScreenState extends State<StartScreen> {
       _selectedCompany = selectedCompany;
     });
   }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -52,6 +54,12 @@ class _StartScreenState extends State<StartScreen> {
     _selectedCompany = _dropdownMenuItems[0].value;
     super.initState();
   }
+  @override
+  void dispose() {
+    txtPerID.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -110,7 +118,9 @@ class _StartScreenState extends State<StartScreen> {
                     SizedBox(width: 20,),
                     Expanded(
                       flex: 9,
-                      child: TxtBox(hintText:'ระบุรหัสประจำตัวพนักงาน',textAlign: TextAlign.center,ctrl: txtPerID,),
+                      child: TxtBox(hintText:'ระบุรหัสประจำตัวพนักงาน',textAlign: TextAlign.center,ctrl: txtPerID,
+                      errorTxt: _validate ? 'กรุณากรอกข้อมูลส่วนนี้' : null,
+                      ),
                     ),
                     Util.w50,
                   ],
@@ -151,8 +161,15 @@ class _StartScreenState extends State<StartScreen> {
                   RaisedButton(
                     child: Text('เข้าสู่ระบบ',style: Util.txtStyleNormal,),
                     onPressed: (){
-                      _onSave();
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => InputOrderScreen(),));
+                      setState(() {
+                        if(txtPerID.text.isEmpty){
+                          _validate = true;
+                        } else {
+                          _validate = false;
+                          _onSave();
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => InputOrderScreen(),));
+                        }
+                      });
                     },
                   ),
                 ),

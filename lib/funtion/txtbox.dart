@@ -10,6 +10,8 @@ class TxtBox extends StatelessWidget {
   final int maxLines;
   final FocusNode focusNode;
   final TextAlign textAlign;
+  final String errorTxt;
+
   TxtBox({
     Key key,
     this.width,
@@ -20,6 +22,7 @@ class TxtBox extends StatelessWidget {
     this.maxLines = 1,
     this.focusNode,
     this.textAlign = TextAlign.justify,
+    this.errorTxt,
   }) : super(key: key);
 
   @override
@@ -36,6 +39,7 @@ class TxtBox extends StatelessWidget {
           contentPadding: EdgeInsets.all(5),
           hintText: hintText,
           hintStyle: TextStyle(color: Util.mainWhite),
+          errorText: errorTxt,
         ),
         textAlign: textAlign,
         focusNode: focusNode,
