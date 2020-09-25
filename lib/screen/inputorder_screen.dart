@@ -220,11 +220,10 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                             String decodeListBarcode = "";
                             for (int i = 0; i < listBarcode.length; i++) {
                               if (i == 0) {
-                                decodeListBarcode +=
-                                ((i + 1).toString() + ". " + listBarcode[i]);
+                                decodeListBarcode += (listBarcode[i]);
                               } else {
                                 decodeListBarcode +=
-                                ("\n" + (i + 1).toString() + ". " +
+                                ("\n" +
                                     listBarcode[i]);
                               }
                             }
