@@ -167,6 +167,15 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     );
   }
 
+  _limitOrder(){
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return _limitOrderDialog();
+      },
+    );
+  }
+
   _saveAndPushDataToLine() async {
     String sName = "";
     String sTotalCount = "";
@@ -539,6 +548,29 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
             }
         ),
       ],
+    );
+  }
+
+  Widget _limitOrderDialog(){
+    return AlertDialog(
+      content:  Text('จำนวนพัสดุของคุณครบจำนวนแล้ว',style: Util.txtStyleNormal,),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      backgroundColor: Util.mainBlue,
+      // actions: <Widget>[
+      //   RaisedButton(
+      //       color: Util.mainGreen,
+      //       child: Text('ยืนยัน',style: Util.txtStyleNormal,),
+      //       onPressed: () async {
+      //       }
+      //   ),
+      //   RaisedButton(
+      //       color: Util.mainRed,
+      //       child: Text('ยกเลิก',style: Util.txtStyleNormal,),
+      //       onPressed: (){
+      //         Navigator.pop(context);
+      //       }
+      //   ),
+      // ],
     );
   }
 
