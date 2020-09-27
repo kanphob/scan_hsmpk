@@ -11,6 +11,8 @@ class Util {
   static var  mainOrange = Color(0xffFF8D01);
   static var  mainWhite = Color(0xffF8F9FB);
   static var  mainBlue = Color(0xff200440);
+  static var  mainGreen = Color(0xff59D185);
+  static var  mainRed = Color(0xffE3001A);
 
   static var  padding5 = EdgeInsets.all(5);
 

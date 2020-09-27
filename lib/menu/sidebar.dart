@@ -10,7 +10,7 @@ import 'package:scan_hsmpk/util/utility.dart';
 import '../util/utility.dart';
 // ignore: must_be_immutable
 class SideBar extends StatelessWidget {
-  String sVersionApp = 'HSMPK v.Beta 1.0';
+  String sVersionApp = 'HSMPK v.Beta 1.1';
   @override
   Widget build(BuildContext context) {
     return Drawer(

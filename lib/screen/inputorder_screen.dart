@@ -71,7 +71,11 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
           context: context,
           builder: (_) {
             return AlertDialog(
-              title: Text("คุณยังไม่ได้ทำการเพิ่มสินค้า"),
+              backgroundColor: Util.mainBlue,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              title: Text("คุณยังไม่ได้ทำการเพิ่มสินค้า",
+                style: Util.txtStyleNormal,
+              ),
             );
           });
       return false;
@@ -145,6 +149,74 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     }
   }
 
+  _confirmSaveData(){
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return _dialogConfirm();
+        },
+    );
+  }
+
+  _confirmDeleteData(){
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return _dialogDelete();
+        },
+    );
+  }
+
+  _saveAndPushDataToLine() async {
+    String sName = "";
+    String sTotalCount = "";
+    List<String> listBarcode = new List();
+    bool bSaveSuccess = await _saveData();
+    if (bSaveSuccess) {
+      await firebaseStore.collection("products").getDocuments().then((querySnapshot) {
+        querySnapshot.documents.where((element) {
+          if (element.data['time'] == sSaveTime) {
+            return true;
+          } else {
+            return false;
+          }
+        }).forEach((result) {
+          sName = result.data['name'];
+          sTotalCount = result.data['total'];
+          listBarcode.add(result.data['barcode']);
+        });
+      }
+      );
+
+      String decodeListBarcode = "";
+      for (int i = 0; i < listBarcode.length; i++) {
+        if (i == 0) {
+          decodeListBarcode += (listBarcode[i]);
+        } else {
+          decodeListBarcode +=
+          ("\n" +
+              listBarcode[i]);
+        }
+      }
+
+      String sResultTxt = "รหัสพนักงาน: $sName\nจำนวนออเดอร์: $sTotalCount ชิ้น\n$decodeListBarcode";
+
+      lOrder.clear();
+      showDialog(context: context, builder: (_) {
+        return AlertDialog(
+          backgroundColor: Util.mainBlue,
+          title: Text(
+              "บันทึกสำเร็จ! ระบบจะส่งข้อความแจ้งเตือนไปในอีกสักครู่",
+            style: Util.txtStyleNormal,
+          ),
+        );
+      });
+      await sendMsg(sResultTxt);
+      setState(() {
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -183,7 +255,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                         : EdgeInsets.only(top: 300, bottom: 20),
                     child: _inputUnitOrder(),
                   ),
-                  SizedBox(
+                  span(
                     height: 10,
                   ),
                  submitOrder ? Column(
@@ -208,61 +280,18 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                           border: Border.all(color: Colors.orange.shade600),
                         ),
                         child: FlatButton.icon(
-                            onPressed: () async {
-                              String sName = "";
-                              String sTotalCount = "";
-                              List<String> listBarcode = new List();
-                              bool bSaveSuccess = await _saveData();
-                              if (bSaveSuccess) {
-                                await firebaseStore.collection("products")
-                                    .getDocuments()
-                                    .then((querySnapshot) {
-                                  querySnapshot.documents.where((element) {
-                                    if (element.data['time'] == sSaveTime) {
-                                      return true;
-                                    } else {
-                                      return false;
-                                    }
-                                  }).forEach((result) {
-                                    sName = result.data['name'];
-                                    sTotalCount = result.data['total'];
-                                    listBarcode.add(result.data['barcode']);
-                                  });
-                                }
-                                );
-
-                                String decodeListBarcode = "";
-                                for (int i = 0; i < listBarcode.length; i++) {
-                                  if (i == 0) {
-                                    decodeListBarcode += (listBarcode[i]);
-                                  } else {
-                                    decodeListBarcode +=
-                                    ("\n" +
-                                        listBarcode[i]);
-                                  }
-                                }
-                                String sResultTxt = "รหัสพนักงาน: $sName\nจำนวนออเดอร์: $sTotalCount ชิ้น\n$decodeListBarcode";
-                                lOrder.clear();
-                                showDialog(context: context, builder: (_) {
-                                  return AlertDialog(
-                                    title: Text(
-                                        "บันทึกสำเร็จ! ระบบจะส่งข้อความแจ้งเตือนไปในอีกสักครู่"),
-                                  );
-                                });
-                                await sendMsg(sResultTxt);
-                                setState(() {
-
-                                });
-                              }
-                            },
                             icon: Icon(
                               Icons.save,
                               color: Colors.white,
                             ),
                             label: Text(
-                              "บันทึก",
-                              style: TextStyle(color: Colors.white),
-                            )),
+                              "บันทึก และ ส่งข้อมูล",
+                              style: Util.txtStyleNormal,
+                            ),
+                          onPressed: () async {
+                            _confirmSaveData();
+                          },
+                        ),
                       ),
                     ],
                   ) : Container()
@@ -424,6 +453,12 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
       title: Text(md.getBarcode,
         style: Util.txtStyleRecord,
       ),
+      trailing: GestureDetector(
+        child: FaIcon(FontAwesomeIcons.minusCircle,color: Util.mainRed,),
+        onTap: () {
+          _confirmDeleteData();
+        },
+      ),
     );
   }
 
@@ -453,6 +488,55 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
           onPressed: () {
             Navigator.of(context).pop(false);
           },
+        ),
+      ],
+    );
+  }
+
+  Widget _dialogConfirm(){
+    return AlertDialog(
+      content:  Text('คุณแน่ใจหรือไม่ว่าข้อมูลครบถ้วนแล้ว ถ้าแน่ใจกดปุ่ม "ยืนยัน" เพื่อส่งข้อมูล',style: Util.txtStyleNormal,),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      backgroundColor: Util.mainBlue,
+      actions: <Widget>[
+        RaisedButton(
+            color: Util.mainGreen,
+            child: Text('ยืนยัน',style: Util.txtStyleNormal,),
+            onPressed: () async {
+              await _saveAndPushDataToLine();
+              setState(() {
+              });
+            }
+        ),
+        RaisedButton(
+            color: Util.mainRed,
+            child: Text('ยกเลิก',style: Util.txtStyleNormal,),
+            onPressed: (){
+              Navigator.pop(context);
+            }
+        ),
+      ],
+    );
+  }
+
+  Widget _dialogDelete(){
+    return AlertDialog(
+      content:  Text('คุณแน่ใจหรือไม่ว่าต้องการลบสินค้าชิ้นนี้ ถ้าแน่ใจกดปุ่ม "ยืนยัน" เพื่อลบข้อมูล',style: Util.txtStyleNormal,),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      backgroundColor: Util.mainBlue,
+      actions: <Widget>[
+        RaisedButton(
+            color: Util.mainGreen,
+            child: Text('ยืนยัน',style: Util.txtStyleNormal,),
+            onPressed: () async {
+            }
+        ),
+        RaisedButton(
+            color: Util.mainRed,
+            child: Text('ยกเลิก',style: Util.txtStyleNormal,),
+            onPressed: (){
+              Navigator.pop(context);
+            }
         ),
       ],
     );
