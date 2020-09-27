@@ -177,96 +177,100 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  // Container(
-                  //   margin: submitOrder
-                  //       ? EdgeInsets.only(top: 20, bottom: 20)
-                  //       : EdgeInsets.only(top: 300, bottom: 20),
-                  //   child: inputUnitOrder(),
-                  // ),
+                  Container(
+                    margin: submitOrder
+                        ? EdgeInsets.only(top: 20, bottom: 20)
+                        : EdgeInsets.only(top: 300, bottom: 20),
+                    child: _inputUnitOrder(),
+                  ),
                   SizedBox(
                     height: 10,
                   ),
-                  Container(
-                    padding: EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade500,
-                      borderRadius: BorderRadius.circular(15),
-                      border: Border.all(color: Colors.orange.shade600),
-                    ),
-                    child: FlatButton.icon(
-                        onPressed: () async {
-                          String sName = "";
-                          String sTotalCount = "";
-                          List<String> listBarcode = new List();
-                          bool bSaveSuccess = await _saveData();
-                          if (bSaveSuccess) {
-                            await firebaseStore.collection("products")
-                                .getDocuments()
-                                .then((querySnapshot) {
-                              querySnapshot.documents.where((element) {
-                                if (element.data['time'] == sSaveTime) {
-                                  return true;
-                                } else {
-                                  return false;
-                                }
-                              }).forEach((result) {
-                                sName = result.data['name'];
-                                sTotalCount = result.data['total'];
-                                listBarcode.add(result.data['barcode']);
-                              });
-                            }
-                            );
-
-                            String decodeListBarcode = "";
-                            for (int i = 0; i < listBarcode.length; i++) {
-                              if (i == 0) {
-                                decodeListBarcode += (listBarcode[i]);
-                              } else {
-                                decodeListBarcode +=
-                                ("\n" +
-                                    listBarcode[i]);
-                              }
-                            }
-                            String sResultTxt = "รหัสพนักงาน: $sName\nจำนวนออเดอร์: $sTotalCount ชิ้น\n$decodeListBarcode";
-                            lOrder.clear();
-                            showDialog(context: context, builder: (_) {
-                              return AlertDialog(
-                                title: Text(
-                                    "บันทึกสำเร็จ! ระบบจะส่งข้อความแจ้งเตือนไปในอีกสักครู่"),
-                              );
-                            });
-                            await sendMsg(sResultTxt);
-                            setState(() {
-
-                            });
-                          }
-                        },
-                        icon: Icon(
-                          Icons.save,
-                          color: Colors.white,
+                 submitOrder ? Column(
+                    children: <Widget>[
+                      Container(
+                        margin:
+                        EdgeInsets.only(top: 5, bottom: 5, left: 20, right: 20),
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5),
+                            border: Border.all(color: Util.mainBlue)),
+                        child: showData(),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Container(
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.shade500,
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(color: Colors.orange.shade600),
                         ),
-                        label: Text(
-                          "บันทึก",
-                          style: TextStyle(color: Colors.white),
-                        )),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Container(
-                    margin:
-                    EdgeInsets.only(top: 5, bottom: 5, left: 20, right: 20),
-                    padding: EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(5),
-                        border: Border.all(color: Util.mainBlue)),
-                    child: showData(),
-                  ),
+                        child: FlatButton.icon(
+                            onPressed: () async {
+                              String sName = "";
+                              String sTotalCount = "";
+                              List<String> listBarcode = new List();
+                              bool bSaveSuccess = await _saveData();
+                              if (bSaveSuccess) {
+                                await firebaseStore.collection("products")
+                                    .getDocuments()
+                                    .then((querySnapshot) {
+                                  querySnapshot.documents.where((element) {
+                                    if (element.data['time'] == sSaveTime) {
+                                      return true;
+                                    } else {
+                                      return false;
+                                    }
+                                  }).forEach((result) {
+                                    sName = result.data['name'];
+                                    sTotalCount = result.data['total'];
+                                    listBarcode.add(result.data['barcode']);
+                                  });
+                                }
+                                );
+
+                                String decodeListBarcode = "";
+                                for (int i = 0; i < listBarcode.length; i++) {
+                                  if (i == 0) {
+                                    decodeListBarcode += (listBarcode[i]);
+                                  } else {
+                                    decodeListBarcode +=
+                                    ("\n" +
+                                        listBarcode[i]);
+                                  }
+                                }
+                                String sResultTxt = "รหัสพนักงาน: $sName\nจำนวนออเดอร์: $sTotalCount ชิ้น\n$decodeListBarcode";
+                                lOrder.clear();
+                                showDialog(context: context, builder: (_) {
+                                  return AlertDialog(
+                                    title: Text(
+                                        "บันทึกสำเร็จ! ระบบจะส่งข้อความแจ้งเตือนไปในอีกสักครู่"),
+                                  );
+                                });
+                                await sendMsg(sResultTxt);
+                                setState(() {
+
+                                });
+                              }
+                            },
+                            icon: Icon(
+                              Icons.save,
+                              color: Colors.white,
+                            ),
+                            label: Text(
+                              "บันทึก",
+                              style: TextStyle(color: Colors.white),
+                            )),
+                      ),
+                    ],
+                  ) : Container()
                 ],
               ),
             ),
           ),
-          floatingActionButton: plusOrder(),
+          floatingActionButton: submitOrder ? plusOrder() : Container(),
         ),
       ),
     );
