@@ -177,12 +177,16 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
   }
 
   _saveAndPushDataToLine() async {
+    int iSaveSuccess = 0;
     String sName = "";
     String sTotalCount = "";
     List<String> listBarcode = new List();
     bool bSaveSuccess = await _saveData();
     if (bSaveSuccess) {
-      await firebaseStore.collection("products").getDocuments().then((querySnapshot) {
+      await firebaseStore
+          .collection("products")
+          .getDocuments()
+          .then((querySnapshot) {
         querySnapshot.documents.where((element) {
           if (element.data['time'] == sSaveTime) {
             return true;
@@ -215,14 +219,19 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
         return AlertDialog(
           backgroundColor: Util.mainBlue,
           title: Text(
-              "บันทึกสำเร็จ! ระบบจะส่งข้อความแจ้งเตือนไปในอีกสักครู่",
+            "บันทึกสำเร็จ! ระบบจะส่งข้อความแจ้งเตือนไปในอีกสักครู่",
             style: Util.txtStyleNormal,
           ),
         );
       });
       await sendMsg(sResultTxt);
       setState(() {
+
       });
+      iSaveSuccess = iSaveSuccess + 1;
+      return iSaveSuccess;
+    } else {
+      return iSaveSuccess;
     }
   }
 
@@ -512,9 +521,8 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
             color: Util.mainGreen,
             child: Text('ยืนยัน',style: Util.txtStyleNormal,),
             onPressed: () async {
-              int result;
-              result = await _saveAndPushDataToLine();
-              if(result > 0 ){
+              int result = await _saveAndPushDataToLine();
+              if (result > 0) {
                 Navigator.pop(context);
               }
             }
