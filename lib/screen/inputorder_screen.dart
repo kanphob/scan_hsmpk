@@ -151,8 +151,8 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     }
   }
 
-  _confirmSaveData() {
-    return showDialog(
+  _confirmSaveData() async {
+    String sResult = await showDialog(
       context: context,
       builder: (_) {
         return _dialogConfirm();
@@ -179,7 +179,6 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
   }
 
   _saveAndPushDataToLine() async {
-    int iSaveSuccess = 0;
     String sName = "";
     String sTotalCount = "";
     List<String> listBarcode = new List();
@@ -227,11 +226,9 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
             );
           });
       await sendMsg(sResultTxt);
-      setState(() {});
-      iSaveSuccess = iSaveSuccess + 1;
-      return iSaveSuccess;
-    } else {
-      return iSaveSuccess;
+      Future.delayed(Duration(seconds: 2), () {
+        Navigator.pop(context, 'success');
+      });
     }
   }
 
@@ -548,10 +545,8 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
               style: Util.txtStyleNormal,
             ),
             onPressed: () async {
-              int result = await _saveAndPushDataToLine();
-              if (result > 0) {
-                Navigator.pop(context);
-              }
+              Navigator.pop(context);
+              String sResult = await _saveAndPushDataToLine();
             }),
         RaisedButton(
             color: Util.mainRed,
