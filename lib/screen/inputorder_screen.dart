@@ -72,8 +72,10 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
           builder: (_) {
             return AlertDialog(
               backgroundColor: Util.mainBlue,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              title: Text("คุณยังไม่ได้ทำการเพิ่มสินค้า",
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              title: Text(
+                "คุณยังไม่ได้ทำการเพิ่มสินค้า",
                 style: Util.txtStyleNormal,
               ),
             );
@@ -149,25 +151,25 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     }
   }
 
-  _confirmSaveData(){
+  _confirmSaveData() {
     return showDialog(
-        context: context,
-        builder: (context) {
-          return _dialogConfirm();
-        },
+      context: context,
+      builder: (_) {
+        return _dialogConfirm();
+      },
     );
   }
 
-  _confirmDeleteData(){
+  _confirmDeleteData(String sBarcode) {
     return showDialog(
-        context: context,
-        builder: (context) {
-          return _dialogDelete();
-        },
+      context: context,
+      builder: (context) {
+        return _dialogDelete(sBarcode);
+      },
     );
   }
 
-  _limitOrder(){
+  _limitOrder() {
     return showDialog(
       context: context,
       builder: (context) {
@@ -198,36 +200,34 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
           sTotalCount = result.data['total'];
           listBarcode.add(result.data['barcode']);
         });
-      }
-      );
+      });
 
       String decodeListBarcode = "";
       for (int i = 0; i < listBarcode.length; i++) {
         if (i == 0) {
           decodeListBarcode += (listBarcode[i]);
         } else {
-          decodeListBarcode +=
-          ("\n" +
-              listBarcode[i]);
+          decodeListBarcode += ("\n" + listBarcode[i]);
         }
       }
 
-      String sResultTxt = "รหัสพนักงาน: $sName\nจำนวนออเดอร์: $sTotalCount ชิ้น\n$decodeListBarcode";
+      String sResultTxt =
+          "รหัสพนักงาน: $sName\nจำนวนออเดอร์: $sTotalCount ชิ้น\n$decodeListBarcode";
 
       lOrder.clear();
-      showDialog(context: context, builder: (_) {
-        return AlertDialog(
-          backgroundColor: Util.mainBlue,
-          title: Text(
-            "บันทึกสำเร็จ! ระบบจะส่งข้อความแจ้งเตือนไปในอีกสักครู่",
-            style: Util.txtStyleNormal,
-          ),
-        );
-      });
+      showDialog(
+          context: context,
+          builder: (_) {
+            return AlertDialog(
+              backgroundColor: Util.mainBlue,
+              title: Text(
+                "บันทึกสำเร็จ! ระบบจะส่งข้อความแจ้งเตือนไปในอีกสักครู่",
+                style: Util.txtStyleNormal,
+              ),
+            );
+          });
       await sendMsg(sResultTxt);
-      setState(() {
-
-      });
+      setState(() {});
       iSaveSuccess = iSaveSuccess + 1;
       return iSaveSuccess;
     } else {
@@ -276,43 +276,46 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                   span(
                     height: 10,
                   ),
-                 submitOrder ? Column(
-                    children: <Widget>[
-                      Container(
-                        margin:
-                        EdgeInsets.only(top: 5, bottom: 5, left: 20, right: 20),
-                        padding: EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5),
-                            border: Border.all(color: Util.mainBlue)),
-                        child: showData(),
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      Container(
-                        padding: EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.shade500,
-                          borderRadius: BorderRadius.circular(15),
-                          border: Border.all(color: Colors.orange.shade600),
-                        ),
-                        child: FlatButton.icon(
-                            icon: Icon(
-                              Icons.save,
-                              color: Colors.white,
+                  submitOrder
+                      ? Column(
+                          children: <Widget>[
+                            Container(
+                              margin: EdgeInsets.only(
+                                  top: 5, bottom: 5, left: 20, right: 20),
+                              padding: EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(color: Util.mainBlue)),
+                              child: showData(),
                             ),
-                            label: Text(
-                              "บันทึก และ ส่งข้อมูล",
-                              style: Util.txtStyleNormal,
+                            SizedBox(
+                              height: 10,
                             ),
-                          onPressed: () async {
-                            _confirmSaveData();
-                          },
-                        ),
-                      ),
-                    ],
-                  ) : Container()
+                            Container(
+                              padding: EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.shade500,
+                                borderRadius: BorderRadius.circular(15),
+                                border:
+                                    Border.all(color: Colors.orange.shade600),
+                              ),
+                              child: FlatButton.icon(
+                                icon: Icon(
+                                  Icons.save,
+                                  color: Colors.white,
+                                ),
+                                label: Text(
+                                  "บันทึก และ ส่งข้อมูล",
+                                  style: Util.txtStyleNormal,
+                                ),
+                                onPressed: () async {
+                                  _confirmSaveData();
+                                },
+                              ),
+                            ),
+                          ],
+                        )
+                      : Container()
                 ],
               ),
             ),
@@ -381,11 +384,12 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
             ),
             span(width: 20),
             Expanded(
-                flex: 2,
-                child: Text(
-                  'ชิ้น',
-                  style: Util.txtStyleNormal,
-                )),
+              flex: 2,
+              child: Text(
+                'ชิ้น',
+                style: Util.txtStyleNormal,
+              ),
+            ),
             span(width: 50),
           ],
         ),
@@ -421,10 +425,12 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
       child: Column(
         children: <Widget>[
           ListTile(
-            leading: Text('No.',
-            style: Util.txtStyleField,
+            leading: Text(
+              'No.',
+              style: Util.txtStyleField,
             ),
-            title: Text('Barcode',
+            title: Text(
+              'Barcode',
               style: Util.txtStyleField,
             ),
           ),
@@ -454,7 +460,8 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                 );
               }),
           ListTile(
-            trailing: Text('จำนวนทั้งหมด ' + lOrder.length.toString() + ' ชิ้น.',
+            trailing: Text(
+              'จำนวนทั้งหมด ' + lOrder.length.toString() + ' ชิ้น.',
               style: Util.txtStyleField,
             ),
           ),
@@ -465,16 +472,21 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
 
   Widget _listOrder(ModelNotify md, int index) {
     return ListTile(
-      leading: Text((index + 1).toString(),
+      leading: Text(
+        (index + 1).toString(),
         style: Util.txtStyleRecord,
       ),
-      title: Text(md.getBarcode,
+      title: Text(
+        md.getBarcode,
         style: Util.txtStyleRecord,
       ),
       trailing: GestureDetector(
-        child: FaIcon(FontAwesomeIcons.minusCircle,color: Util.mainRed,),
+        child: FaIcon(
+          FontAwesomeIcons.minusCircle,
+          color: Util.mainRed,
+        ),
         onTap: () {
-          _confirmDeleteData();
+          _confirmDeleteData(md.getBarcode);
         },
       ),
     );
@@ -484,7 +496,16 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     return FloatingActionButton(
       child: FaIcon(FontAwesomeIcons.plus),
       onPressed: () {
-        scan();
+        int iLimitOrder = 0;
+        if (amountTxtController.text != null ||
+            amountTxtController.text != '') {
+          iLimitOrder = int.parse(amountTxtController.text);
+        }
+        if (lOrder.length == iLimitOrder) {
+          _limitOrder();
+        } else {
+          scan();
+        }
       },
     );
   }
@@ -511,59 +532,80 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     );
   }
 
-  Widget _dialogConfirm(){
+  Widget _dialogConfirm() {
     return AlertDialog(
-      content:  Text('คุณแน่ใจหรือไม่ว่าข้อมูลครบถ้วนแล้ว ถ้าแน่ใจกดปุ่ม "ยืนยัน" เพื่อส่งข้อมูล',style: Util.txtStyleNormal,),
+      content: Text(
+        'คุณแน่ใจหรือไม่ว่าข้อมูลครบถ้วนแล้ว ถ้าแน่ใจกดปุ่ม "ยืนยัน" เพื่อส่งข้อมูล',
+        style: Util.txtStyleNormal,
+      ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       backgroundColor: Util.mainBlue,
       actions: <Widget>[
         RaisedButton(
             color: Util.mainGreen,
-            child: Text('ยืนยัน',style: Util.txtStyleNormal,),
+            child: Text(
+              'ยืนยัน',
+              style: Util.txtStyleNormal,
+            ),
             onPressed: () async {
               int result = await _saveAndPushDataToLine();
               if (result > 0) {
                 Navigator.pop(context);
               }
-            }
-        ),
+            }),
         RaisedButton(
             color: Util.mainRed,
-            child: Text('ยกเลิก',style: Util.txtStyleNormal,),
-            onPressed: (){
+            child: Text(
+              'ยกเลิก',
+              style: Util.txtStyleNormal,
+            ),
+            onPressed: () {
               Navigator.pop(context);
-            }
-        ),
+            }),
       ],
     );
   }
 
-  Widget _dialogDelete(){
+  Widget _dialogDelete(String sBarcode) {
     return AlertDialog(
-      content:  Text('คุณแน่ใจหรือไม่ว่าต้องการลบสินค้าชิ้นนี้ ถ้าแน่ใจกดปุ่ม "ยืนยัน" เพื่อลบข้อมูล',style: Util.txtStyleNormal,),
+      content: Text(
+        'คุณแน่ใจหรือไม่ว่าต้องการลบสินค้าชิ้นนี้ ถ้าแน่ใจกดปุ่ม "ยืนยัน" เพื่อลบข้อมูล',
+        style: Util.txtStyleNormal,
+      ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       backgroundColor: Util.mainBlue,
       actions: <Widget>[
         RaisedButton(
             color: Util.mainGreen,
-            child: Text('ยืนยัน',style: Util.txtStyleNormal,),
+            child: Text(
+              'ยืนยัน',
+              style: Util.txtStyleNormal,
+            ),
             onPressed: () async {
-            }
-        ),
+              lOrder.removeWhere((item) => item.getBarcode == sBarcode);
+
+              Navigator.pop(context);
+              setState(() {});
+            }),
         RaisedButton(
             color: Util.mainRed,
-            child: Text('ยกเลิก',style: Util.txtStyleNormal,),
-            onPressed: (){
+            child: Text(
+              'ยกเลิก',
+              style: Util.txtStyleNormal,
+            ),
+            onPressed: () {
               Navigator.pop(context);
-            }
-        ),
+            }),
       ],
     );
   }
 
-  Widget _limitOrderDialog(){
+  Widget _limitOrderDialog() {
     return AlertDialog(
-      content:  Text('จำนวนพัสดุของคุณครบจำนวนแล้ว',style: Util.txtStyleNormal,),
+      content: Text(
+        'จำนวนพัสดุของคุณครบจำนวนแล้ว',
+        style: Util.txtStyleNormal,
+      ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       backgroundColor: Util.mainBlue,
       // actions: <Widget>[
