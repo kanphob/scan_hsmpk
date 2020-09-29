@@ -163,7 +163,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
   _confirmDeleteData(String sBarcode) {
     return showDialog(
       context: context,
-      builder: (context) {
+      builder: (_) {
         return _dialogDelete(sBarcode);
       },
     );
@@ -174,6 +174,15 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
       context: context,
       builder: (context) {
         return _limitOrderDialog();
+      },
+    );
+  }
+
+  _editOrder() {
+    return showDialog(
+      context: context,
+      builder: (_) {
+        return _dialogEditOrder();
       },
     );
   }
@@ -230,6 +239,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
         Navigator.pop(context, 'success');
       });
     }
+
   }
 
   @override
@@ -365,29 +375,52 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            span(width: 50),
+            span(width: 30),
             Expanded(
-                flex: 3,
+                flex: 2,
                 child: Text(
-                  'จำนวน Order',
+                  'จำนวนพัสดุ',
                   style: Util.txtStyleNormal,
                 )),
             Expanded(
-              flex: 3,
+              flex: 1,
+                child: RaisedButton(
+                    child: FaIcon(FontAwesomeIcons.minus,color: Util.mainWhite,),
+                    color: Util.mainRed,
+                    onPressed: (){
+                    }
+                ),
+            ),
+            span(width: 5),
+            Expanded(
+              flex: 1,
               child: TxtBox(
                 ctrl: amountTxtController,
-                textAlign: TextAlign.end,
+                textAlign: TextAlign.center,
+                kbType: TextInputType.number,
+                onTap: (){
+                  _editOrder();
+                },
               ),
             ),
-            span(width: 20),
+            span(width: 5),
             Expanded(
-              flex: 2,
+              flex: 1,
+              child: RaisedButton(
+                  child: FaIcon(FontAwesomeIcons.plus,color: Util.mainWhite,),
+                  color: Util.mainGreen,
+                  onPressed: (){}
+              ),
+            ),
+            span(width: 10),
+            Expanded(
+              flex: 1,
               child: Text(
                 'ชิ้น',
                 style: Util.txtStyleNormal,
               ),
             ),
-            span(width: 50),
+            span(width: 30),
           ],
         ),
         submitOrder
@@ -618,6 +651,35 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
       //       }
       //   ),
       // ],
+    );
+  }
+
+  Widget _dialogEditOrder() {
+    return AlertDialog(
+      title: Text('แก้ไขจำนวนพัสดุ',style: Util.txtStyleHeaderDialog2,),
+      content: TxtBox(
+        ctrl: amountTxtController,
+        textAlign: TextAlign.center,
+        kbType: TextInputType.number,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      backgroundColor: Util.mainBlue,
+      actions: <Widget>[
+        RaisedButton(
+            color: Util.mainGreen,
+            child: Text('ยืนยัน',style: Util.txtStyleNormal,),
+            onPressed: () async {
+              Navigator.pop(context);
+            }
+        ),
+        RaisedButton(
+            color: Util.mainRed,
+            child: Text('ยกเลิก',style: Util.txtStyleNormal,),
+            onPressed: (){
+              Navigator.pop(context);
+            }
+        ),
+      ],
     );
   }
 

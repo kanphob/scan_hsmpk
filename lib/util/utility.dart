@@ -6,6 +6,7 @@ class Util {
   static var  txtStyleField = TextStyle(color: mainBlue,fontSize: 18,fontWeight: FontWeight.w600);
   static var  txtStyleRecord = TextStyle(color: mainBlue,fontSize: 16,);
   static var  txtStyleHeaderDialog = TextStyle(color: mainOrange,fontSize: 20,fontWeight: FontWeight.w600);
+  static var  txtStyleHeaderDialog2 = TextStyle(color: mainWhite,fontSize: 20,fontWeight: FontWeight.w600);
 
   static var  halfOrange = Color(0xffFFBF3D);
   static var  mainOrange = Color(0xffFF8D01);

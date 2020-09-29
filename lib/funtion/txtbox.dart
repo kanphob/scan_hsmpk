@@ -11,6 +11,7 @@ class TxtBox extends StatelessWidget {
   final FocusNode focusNode;
   final TextAlign textAlign;
   final String errorTxt;
+  final TextInputType kbType;
 
   TxtBox({
     Key key,
@@ -23,6 +24,7 @@ class TxtBox extends StatelessWidget {
     this.focusNode,
     this.textAlign = TextAlign.justify,
     this.errorTxt,
+    this.kbType,
   }) : super(key: key);
 
   @override
@@ -40,11 +42,14 @@ class TxtBox extends StatelessWidget {
           hintText: hintText,
           hintStyle: TextStyle(color: Util.mainWhite),
           errorText: errorTxt,
+
         ),
         textAlign: textAlign,
         focusNode: focusNode,
         cursorColor: Util.mainOrange,
         onTap: onTap == null ? () {} : onTap,
+        keyboardType: kbType,
+        autofocus: false,
       ),
     );
   }
