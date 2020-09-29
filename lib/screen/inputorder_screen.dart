@@ -512,9 +512,11 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
             color: Util.mainGreen,
             child: Text('ยืนยัน',style: Util.txtStyleNormal,),
             onPressed: () async {
-              await _saveAndPushDataToLine();
-              setState(() {
-              });
+              int result;
+              result = await _saveAndPushDataToLine();
+              if(result > 0 ){
+                Navigator.pop(context);
+              }
             }
         ),
         RaisedButton(
