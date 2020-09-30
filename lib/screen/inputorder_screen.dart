@@ -242,7 +242,6 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
         Navigator.pop(context, 'success');
       });
     }
-
   }
 
   @override
@@ -319,7 +318,32 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                                   style: Util.txtStyleNormal,
                                 ),
                                 onPressed: () async {
-                                  _confirmSaveData();
+                                  if (lOrder.length > 0) {
+                                    _confirmSaveData();
+                                  } else {
+                                    showDialog(
+                                        context: context,
+                                        builder: (_) {
+                                          return AlertDialog(
+                                            title: Text(
+                                                "กรุณาเพิ่มรายการอย่างน้อย 1 รายการก่อนทำการบันทึก"),
+                                            actions: <Widget>[
+                                              FlatButton.icon(
+                                                  onPressed: () =>
+                                                      Navigator.pop(context),
+                                                  icon: Icon(
+                                                    Icons.clear,
+                                                    color: Colors.grey,
+                                                  ),
+                                                  label: Text(
+                                                    "ปิด",
+                                                    style: TextStyle(
+                                                        color: Colors.grey),
+                                                  ))
+                                            ],
+                                          );
+                                        });
+                                  }
                                 },
                               ),
                             ),
@@ -387,8 +411,8 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                 )),
             Expanded(
               flex: 1,
-                child: RaisedButton(
-                    padding: EdgeInsets.all(1),
+              child: RaisedButton(
+                  padding: EdgeInsets.all(1),
                   child: FaIcon(
                     FontAwesomeIcons.minus,
                     color: Util.mainWhite,
@@ -447,22 +471,22 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
         submitOrder
             ? Container()
             : Row(
-          children: <Widget>[
-            span(width: 50),
-            Expanded(
-              child: RaisedButton(
-                  child: Text(
-                    'ยืนยัน',
-                    style: Util.txtStyleNormal,
+                children: <Widget>[
+                  span(width: 50),
+                  Expanded(
+                    child: RaisedButton(
+                        child: Text(
+                          'ยืนยัน',
+                          style: Util.txtStyleNormal,
+                        ),
+                        onPressed: () {
+                          submitOrder = true;
+                          setState(() {});
+                        }),
                   ),
-                  onPressed: () {
-                    submitOrder = true;
-                    setState(() {});
-                  }),
-            ),
-            span(width: 50),
-          ],
-        ),
+                  span(width: 50),
+                ],
+              ),
       ],
     );
   }
@@ -618,7 +642,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
   Widget _dialogDelete(String sBarcode) {
     return AlertDialog(
       content: Text(
-        'คุณแน่ใจหรือไม่ว่าต้องการลบสินค้าชิ้นนี้ ถ้าแน่ใจกดปุ่ม "ยืนยัน" เพื่อลบข้อมูล',
+        'คุณแน่ใจหรือไม่ว่าต้องการลบสินค้ารหัส $sBarcode ถ้าแน่ใจกดปุ่ม "ยืนยัน" เพื่อลบข้อมูล',
         style: Util.txtStyleNormal,
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -677,7 +701,10 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
 
   Widget _dialogEditOrder(String sText) {
     return AlertDialog(
-      title: Text('แก้ไขจำนวนพัสดุ', style: Util.txtStyleHeaderDialog2,),
+      title: Text(
+        'แก้ไขจำนวนพัสดุ',
+        style: Util.txtStyleHeaderDialog2,
+      ),
       content: TxtBox(
         bAutoFocus: true,
         inputFormatter: [WhitelistingTextInputFormatter.digitsOnly],
@@ -690,21 +717,25 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
       actions: <Widget>[
         RaisedButton(
             color: Util.mainGreen,
-            child: Text('ยืนยัน',style: Util.txtStyleNormal,),
+            child: Text(
+              'ยืนยัน',
+              style: Util.txtStyleNormal,
+            ),
             onPressed: () async {
               amountTxtController.text = amountTempTxtController.text;
               iMaxQuantityItem = int.parse(amountTxtController.text);
               Navigator.pop(context);
-            }
-        ),
+            }),
         RaisedButton(
             color: Util.mainRed,
-            child: Text('ยกเลิก',style: Util.txtStyleNormal,),
-            onPressed: (){
+            child: Text(
+              'ยกเลิก',
+              style: Util.txtStyleNormal,
+            ),
+            onPressed: () {
               amountTxtController.text = sText;
               Navigator.pop(context);
-            }
-        ),
+            }),
       ],
     );
   }
