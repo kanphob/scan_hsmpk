@@ -246,6 +246,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
         Navigator.pop(context, 'success');
       });
     }
+
   }
 
   @override
@@ -379,19 +380,19 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
               onTap: () {},
             ),
           ),
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-                FaIcon(FontAwesomeIcons.user),
-                span(width: 10),
-                Text(
-                  sPerId,
-                  style: Util.txtStyleNormal,
-                ),
-              ],
-            ),
-          ),
+          // Expanded(
+          //   child: Row(
+          //     mainAxisAlignment: MainAxisAlignment.end,
+          //     children: <Widget>[
+          //       FaIcon(FontAwesomeIcons.user),
+          //       span(width: 10),
+          //       Text(
+          //         sPerId,
+          //         style: Util.txtStyleNormal,
+          //       ),
+          //     ],
+          //   ),
+          // ),
         ],
       ),
     );

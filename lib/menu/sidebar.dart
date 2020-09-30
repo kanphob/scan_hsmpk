@@ -6,29 +6,77 @@ import 'package:scan_hsmpk/funtion/historydialog.dart';
 import 'package:scan_hsmpk/screen/inputorder_screen.dart';
 import 'package:scan_hsmpk/screen/start_screen.dart';
 import 'package:scan_hsmpk/util/utility.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../util/utility.dart';
-// ignore: must_be_immutable
-class SideBar extends StatelessWidget {
+class SideBar extends StatefulWidget {
+  @override
+  _SideBarState createState() => _SideBarState();
+}
+
+class _SideBarState extends State<SideBar> {
   String sVersionApp = 'HSMPK v.Beta 1.1';
+  String sPerId;
+
+  _getData() async {
+    SharedPreferences myPrefs = await SharedPreferences.getInstance();
+    final String sId = myPrefs.getString('sPerID');
+    sPerId = sId;
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    _getData();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
       child: Container(
         color: Util.mainBlue,
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+        child: ListView(
+          padding: EdgeInsets.zero,
+          shrinkWrap: true,
+          physics: BouncingScrollPhysics(),
           children: <Widget>[
-            DrawerHeader(
+            UserAccountsDrawerHeader(
               decoration: BoxDecoration(
-                color: Util.halfOrange,
+                color: Colors.transparent,
                 image: DecorationImage(
                   fit: BoxFit.fill,
-                  image: AssetImage('assets/images/sidebarpic.jpg'),
+                  image: AssetImage('assets/images/sidebarpic.jpg',),
+                  matchTextDirection: true,
                 ),
               ),
+              accountName: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: <Widget>[
+                      FaIcon(FontAwesomeIcons.userAlt,color: Util.mainWhite,),
+                      SizedBox(width: 10,),
+                      Text(
+                        sPerId,
+                        style: Util.txtStyleNormal,
+                      ),
+                    ],
+                  ),
+              currentAccountPicture: CircleAvatar(
+                child: FlutterLogo(size: 42.0,),
+                backgroundColor: Colors.white,
+              ),
+              // otherAccountsPictures: <Widget>[
+              //   CircleAvatar(
+              //     child: Text("N"),
+              //     foregroundColor: Colors.white,
+              //     backgroundColor: Colors.orange,
+              //   ),
+              //   CircleAvatar(
+              //     child: Icon(Icons.add),
+              //     foregroundColor: Colors.white,
+              //     backgroundColor: Colors.grey,
+              //   )
+              // ],
             ),
             Container(
               child:ListTile(
@@ -76,14 +124,14 @@ class SideBar extends StatelessWidget {
                 title: Text(sVersionApp,style: Util.txtStyleSidebar,),
               ),
             ),
-            // Divider(
-            //   color: Util.halfOrange,
-            //   height: 0,
-            // ),
+            Divider(
+              color: Util.halfOrange,
+              height: 0,
+            ),
           ],
         ),
-      )
+      ),
     );
   }
-
 }
+
