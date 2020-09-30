@@ -16,7 +16,7 @@ class SideBar extends StatefulWidget {
 
 class _SideBarState extends State<SideBar> {
   String sVersionApp = 'HSMPK v.Beta 1.1';
-  String sPerId;
+  String sPerId = " ";
 
   _getData() async {
     SharedPreferences myPrefs = await SharedPreferences.getInstance();
@@ -48,6 +48,7 @@ class _SideBarState extends State<SideBar> {
                   fit: BoxFit.fill,
                   image: AssetImage('assets/images/sidebarpic.jpg',),
                   matchTextDirection: true,
+                  colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.5), BlendMode.srcOver),
                 ),
               ),
               accountName: Row(
@@ -62,8 +63,8 @@ class _SideBarState extends State<SideBar> {
                     ],
                   ),
               currentAccountPicture: CircleAvatar(
-                child: FlutterLogo(size: 42.0,),
-                backgroundColor: Colors.white,
+                child: Image.asset('assets/images/uAvatar1.png'),
+                backgroundColor: Util.mainOrange ,
               ),
               // otherAccountsPictures: <Widget>[
               //   CircleAvatar(
