@@ -25,6 +25,7 @@ class InputOrderScreen extends StatefulWidget {
 class _InputOrderScreenState extends State<InputOrderScreen> {
   bool submitOrder = false;
   TextEditingController amountTxtController = TextEditingController();
+  TextEditingController amountTempTxtController = TextEditingController();
   String sPerId = ' ';
   String sBarcode = "";
   List<ModelNotify> lOrder = [];
@@ -34,11 +35,13 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
   final DateFormat formatterDate = DateFormat('yyyy-MM-dd');
   final DateFormat formatterTime = DateFormat('HH:mm');
   String sSaveTime = "";
+  int iMaxQuantityItem = 1;
 
   _getData() async {
     SharedPreferences myPrefs = await SharedPreferences.getInstance();
     final String sId = myPrefs.getString('sPerID');
     sPerId = sId;
+    amountTxtController.text = iMaxQuantityItem.toString();
     setState(() {});
   }
 
@@ -178,11 +181,11 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     );
   }
 
-  _editOrder() {
+  _editOrder(String sText) {
     return showDialog(
       context: context,
       builder: (_) {
-        return _dialogEditOrder();
+        return _dialogEditOrder(sText);
       },
     );
   }
@@ -385,21 +388,31 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
             Expanded(
               flex: 1,
                 child: RaisedButton(
-                    child: FaIcon(FontAwesomeIcons.minus,color: Util.mainWhite,),
-                    color: Util.mainRed,
-                    onPressed: (){
+                    padding: EdgeInsets.all(1),
+                  child: FaIcon(
+                    FontAwesomeIcons.minus,
+                    color: Util.mainWhite,
+                  ),
+                  color: Util.mainRed,
+                  onPressed: () {
+                    if (iMaxQuantityItem > 1) {
+                      iMaxQuantityItem -= 1;
                     }
-                ),
+                    setState(() {
+                      amountTxtController.text = iMaxQuantityItem.toString();
+                    });
+                  }),
             ),
             span(width: 5),
             Expanded(
               flex: 1,
               child: TxtBox(
+                bReadOnly: true,
                 ctrl: amountTxtController,
                 textAlign: TextAlign.center,
                 kbType: TextInputType.number,
-                onTap: (){
-                  _editOrder();
+                onTap: () {
+                  _editOrder(amountTxtController.text);
                 },
               ),
             ),
@@ -407,10 +420,18 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
             Expanded(
               flex: 1,
               child: RaisedButton(
-                  child: FaIcon(FontAwesomeIcons.plus,color: Util.mainWhite,),
+                  padding: EdgeInsets.all(1),
+                  child: FaIcon(
+                    FontAwesomeIcons.plus,
+                    color: Util.mainWhite,
+                  ),
                   color: Util.mainGreen,
-                  onPressed: (){}
-              ),
+                  onPressed: () {
+                    iMaxQuantityItem += 1;
+                    setState(() {
+                      amountTxtController.text = iMaxQuantityItem.toString();
+                    });
+                  }),
             ),
             span(width: 10),
             Expanded(
@@ -654,11 +675,13 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     );
   }
 
-  Widget _dialogEditOrder() {
+  Widget _dialogEditOrder(String sText) {
     return AlertDialog(
-      title: Text('แก้ไขจำนวนพัสดุ',style: Util.txtStyleHeaderDialog2,),
+      title: Text('แก้ไขจำนวนพัสดุ', style: Util.txtStyleHeaderDialog2,),
       content: TxtBox(
-        ctrl: amountTxtController,
+        bAutoFocus: true,
+        inputFormatter: [WhitelistingTextInputFormatter.digitsOnly],
+        ctrl: amountTempTxtController,
         textAlign: TextAlign.center,
         kbType: TextInputType.number,
       ),
@@ -669,6 +692,8 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
             color: Util.mainGreen,
             child: Text('ยืนยัน',style: Util.txtStyleNormal,),
             onPressed: () async {
+              amountTxtController.text = amountTempTxtController.text;
+              iMaxQuantityItem = int.parse(amountTxtController.text);
               Navigator.pop(context);
             }
         ),
@@ -676,6 +701,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
             color: Util.mainRed,
             child: Text('ยกเลิก',style: Util.txtStyleNormal,),
             onPressed: (){
+              amountTxtController.text = sText;
               Navigator.pop(context);
             }
         ),

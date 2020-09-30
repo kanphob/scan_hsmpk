@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:scan_hsmpk/util/utility.dart';
+
 class TxtBox extends StatelessWidget {
 
   final double width;
@@ -12,6 +14,9 @@ class TxtBox extends StatelessWidget {
   final TextAlign textAlign;
   final String errorTxt;
   final TextInputType kbType;
+  final bool bReadOnly;
+  final bool bAutoFocus;
+  final List<TextInputFormatter> inputFormatter;
 
   TxtBox({
     Key key,
@@ -25,6 +30,9 @@ class TxtBox extends StatelessWidget {
     this.textAlign = TextAlign.justify,
     this.errorTxt,
     this.kbType,
+    this.bReadOnly = false,
+    this.bAutoFocus = false,
+    this.inputFormatter,
   }) : super(key: key);
 
   @override
@@ -33,9 +41,11 @@ class TxtBox extends StatelessWidget {
       width: width,
       height: height == 0 ? null : height,
       child: TextField(
+        readOnly: bReadOnly,
         controller: ctrl,
         maxLines: maxLines,
         style: Util.txtStyleNormal,
+        inputFormatters: inputFormatter,
         // cursorColor: Color.fromRGBO(221, 221, 221, 1),
         decoration: InputDecoration(
           contentPadding: EdgeInsets.all(5),
@@ -49,7 +59,7 @@ class TxtBox extends StatelessWidget {
         cursorColor: Util.mainOrange,
         onTap: onTap == null ? () {} : onTap,
         keyboardType: kbType,
-        autofocus: false,
+        autofocus: bAutoFocus,
       ),
     );
   }
