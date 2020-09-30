@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:scan_hsmpk/database.dart';
@@ -48,6 +49,9 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
   @override
   void initState() {
     _getData();
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _dialogQuantitySet();
+    });
     super.initState();
   }
 
@@ -276,22 +280,22 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Container(
-                    margin: submitOrder
-                        ? EdgeInsets.only(top: 20, bottom: 20)
-                        : EdgeInsets.only(top: 300, bottom: 20),
+                  submitOrder
+                      ? Container(
+                    margin: EdgeInsets.only(top: 20, bottom: 20),
                     child: _inputUnitOrder(),
-                  ),
+                  )
+                      : Container(),
                   span(
                     height: 10,
                   ),
                   submitOrder
                       ? Column(
-                          children: <Widget>[
-                            Container(
-                              margin: EdgeInsets.only(
-                                  top: 5, bottom: 5, left: 20, right: 20),
-                              padding: EdgeInsets.all(5),
+                    children: <Widget>[
+                      Container(
+                        margin: EdgeInsets.only(
+                            top: 5, bottom: 5, left: 20, right: 20),
+                        padding: EdgeInsets.all(5),
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(5),
                                   border: Border.all(color: Util.mainBlue)),
@@ -605,6 +609,110 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
         ),
       ],
     );
+  }
+
+  Widget _dialogQuantitySet() {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (_) {
+          return AlertDialog(
+            title: Text("กรุณาระบุจำนวนพัสดุ"),
+            contentPadding: EdgeInsets.all(0),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                SizedBox(height: 10,),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    span(width: 10),
+                    Expanded(
+                        flex: 2,
+                        child: Text(
+                          'จำนวน',
+                          style: TextStyle(color: Colors.orange, fontSize: 18),
+                        )),
+                    Expanded(
+                      flex: 1,
+                      child: RaisedButton(
+                          padding: EdgeInsets.all(1),
+                          child: FaIcon(
+                            FontAwesomeIcons.minus,
+                            color: Util.mainWhite,
+                          ),
+                          color: Util.mainRed,
+                          onPressed: () {
+                            if (iMaxQuantityItem > 1) {
+                              iMaxQuantityItem -= 1;
+                            }
+                            setState(() {
+                              amountTxtController.text =
+                                  iMaxQuantityItem.toString();
+                            });
+                          }),
+                    ),
+                    span(width: 10),
+                    Expanded(
+                      flex: 2,
+                      child: TxtBox(
+                        bReadOnly: true,
+                        ctrl: amountTxtController,
+                        textAlign: TextAlign.center,
+                        kbType: TextInputType.number,
+                        onTap: () {
+                          _editOrder(amountTxtController.text);
+                        },
+                      ),
+                    ),
+                    span(width: 10),
+                    Expanded(
+                      flex: 1,
+                      child: RaisedButton(
+                          padding: EdgeInsets.all(1),
+                          child: FaIcon(
+                            FontAwesomeIcons.plus,
+                            color: Util.mainWhite,
+                          ),
+                          color: Util.mainGreen,
+                          onPressed: () {
+                            iMaxQuantityItem += 1;
+                            setState(() {
+                              amountTxtController.text =
+                                  iMaxQuantityItem.toString();
+                            });
+                          }),
+                    ),
+                    span(width: 10),
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        'ชิ้น',
+                        style: TextStyle(color: Colors.orange, fontSize: 18),
+                      ),
+                    ),
+                    span(width: 10),
+                  ],
+                ),
+              ],
+            ),
+            actions: <Widget>[
+              RaisedButton(
+                  child: Text(
+                    'ยืนยัน',
+                    style: Util.txtStyleNormal,
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    submitOrder = true;
+                    setState(() {});
+                  }),
+            ],
+          );
+        });
   }
 
   Widget _dialogConfirm() {
