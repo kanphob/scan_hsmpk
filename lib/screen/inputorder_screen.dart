@@ -70,6 +70,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
         sSaveTime = formatterTime.format(dtCurrentDate);
         lOrder[i].sFullDateTime = dtCurrentDate.toString();
         lOrder[i].setTotalItem = lOrder.length.toString();
+        lOrder[i].sIndex = (i + 1).toString();
         await repository.addProduct(lOrder[i]);
       }
       return true;
@@ -202,6 +203,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     if (bSaveSuccess) {
       await firebaseStore
           .collection("products")
+          .orderBy('index')
           .getDocuments()
           .then((querySnapshot) {
         querySnapshot.documents.where((element) {
@@ -734,6 +736,9 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
             onPressed: () async {
               Navigator.pop(context);
               String sResult = await _saveAndPushDataToLine();
+              if (sResult == 'success') {
+                setState(() {});
+              }
             }),
         RaisedButton(
             color: Util.mainRed,

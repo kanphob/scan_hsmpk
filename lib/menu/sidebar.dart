@@ -46,7 +46,9 @@ class _SideBarState extends State<SideBar> {
                 color: Colors.transparent,
                 image: DecorationImage(
                   fit: BoxFit.fill,
-                  image: AssetImage('assets/images/sidebarpic.jpg',),
+                  image: AssetImage('assets/images/sidebarpic.jpg'),
+                  colorFilter: ColorFilter.mode(
+                      Colors.black.withOpacity(0.5), BlendMode.srcOver),
                   matchTextDirection: true,
                 ),
               ),

@@ -8,7 +8,7 @@ class ModelNotify {
   String _sDate;
   String _sTime;
   String _sFullDateTime;
-
+  String _sIndex;
   String _sBranch;
   DocumentReference sDocumentReference;
 
@@ -26,8 +26,15 @@ class ModelNotify {
         'time': instance._sTime,
         'fulldate': instance._sFullDateTime,
         'branch': instance._sBranch,
+        'index': instance._sIndex,
         'document': instance.sDocumentReference,
       };
+
+  String get sIndex => _sIndex;
+
+  set sIndex(String value) {
+    _sIndex = value;
+  }
 
   String get sFullDateTime => _sFullDateTime;
 
