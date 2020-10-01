@@ -15,7 +15,7 @@ class SideBar extends StatefulWidget {
 }
 
 class _SideBarState extends State<SideBar> {
-  String sVersionApp = 'HSMPK v.Beta 1.1';
+  String sVersionApp = 'HSMPK v.Beta 1.2';
   String sPerId = " ";
 
   _getData() async {
@@ -47,8 +47,6 @@ class _SideBarState extends State<SideBar> {
                 image: DecorationImage(
                   fit: BoxFit.fill,
                   image: AssetImage('assets/images/sidebarpic.jpg'),
-                  colorFilter: ColorFilter.mode(
-                      Colors.black.withOpacity(0.5), BlendMode.srcOver),
                   matchTextDirection: true,
                   colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.5), BlendMode.srcOver),
                 ),

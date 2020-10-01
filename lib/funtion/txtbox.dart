@@ -17,7 +17,7 @@ class TxtBox extends StatelessWidget {
   final bool bReadOnly;
   final bool bAutoFocus;
   final List<TextInputFormatter> inputFormatter;
-
+  final Function onChange;
   TxtBox({
     Key key,
     this.width,
@@ -33,6 +33,7 @@ class TxtBox extends StatelessWidget {
     this.bReadOnly = false,
     this.bAutoFocus = false,
     this.inputFormatter,
+    this.onChange,
   }) : super(key: key);
 
   @override
@@ -60,6 +61,7 @@ class TxtBox extends StatelessWidget {
         onTap: onTap == null ? () {} : onTap,
         keyboardType: kbType,
         autofocus: bAutoFocus,
+        onChanged: onChange,
       ),
     );
   }
