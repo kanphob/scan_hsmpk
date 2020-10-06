@@ -5,8 +5,7 @@ import 'package:scan_hsmpk/model/modelnotify.dart';
 
 class DataRepository {
   // 1
-  final CollectionReference collection =
-      Firestore.instance.collection('products');
+  final CollectionReference collection = Firestore.instance.collection('products');
 
   // 2
   Stream<QuerySnapshot> getStream() {
@@ -23,10 +22,6 @@ class DataRepository {
     await collection
         .document(product.sDocumentReference.documentID)
         .updateData(product.toJson());
-  }
-  //5
-  Future<List<Map>> getDataByUserId() async{
-    return List();
   }
 
 }

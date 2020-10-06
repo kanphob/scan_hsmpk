@@ -1,9 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:scan_hsmpk/funtion/txtbox.dart';
 import 'package:scan_hsmpk/menu/sidebar.dart';
+import 'package:scan_hsmpk/model/modelShowdata.dart';
 import 'package:scan_hsmpk/util/utility.dart';
+import 'package:intl/intl.dart';
+
 class HistoryOrder extends StatefulWidget {
   @override
   _HistoryOrderState createState() => _HistoryOrderState();
@@ -11,16 +15,44 @@ class HistoryOrder extends StatefulWidget {
 
 class _HistoryOrderState extends State<HistoryOrder> {
   TextEditingController txtPerID = TextEditingController();
-  var finalDate;
+  Firestore firebaseStore = Firestore.instance;
   DateTime dateTime;
+  ModelShowData modelShowData = ModelShowData();
+  List<ModelShowData> listBarcode = List();
+  final DateFormat formatterDate = DateFormat('yyyy-MM-dd');
 
-  void _callDatePicker() async {
-    var order = await getDate();
-    setState(() {
-      finalDate = order;
+  _getData() async {
+    String sDateTime = formatterDate.format(dateTime);
+    await firebaseStore
+        .collection("products")
+        .orderBy('index')
+        .getDocuments()
+        .then((querySnapshot) {
+      querySnapshot.documents.where((element) {
+        if (element.data['date'] == sDateTime) {
+          if(element.data['name'] == txtPerID.text){
+            return true;
+          }else{
+            return false;
+          }
+        } else {
+          return false;
+        }
+      }).forEach((result) {
+        String name;
+        String date;
+        String barcode;
+        name = result.data['name'];
+        date = result.data['date'];
+        barcode = result.data['barcode'];
+        modelShowData.name = name;
+        modelShowData.date = date;
+        modelShowData.barcode = barcode;
+        listBarcode.add(modelShowData);
+
+      });
     });
   }
-
 
   @override
   void initState() {
@@ -160,6 +192,7 @@ class _HistoryOrderState extends State<HistoryOrder> {
                         style: Util.txtStyleNormal,
                         ),
                         onPressed: (){
+                          _getData();
                         }
                     )
                 ),
