@@ -1,11 +1,15 @@
 import 'dart:convert';
-
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:share/share.dart';
 import 'package:barcode_scan/barcode_scan.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:scan_hsmpk/database.dart';
 import 'package:scan_hsmpk/funtion/txtbox.dart';
 import 'package:scan_hsmpk/menu/sidebar.dart';
@@ -17,6 +21,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_line_sdk/flutter_line_sdk.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:excel/excel.dart';
 
 class InputOrderScreen extends StatefulWidget {
   @override
@@ -35,6 +40,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
   DataRepository repository = DataRepository();
   final DateFormat formatterDate = DateFormat('yyyy-MM-dd');
   final DateFormat formatterTime = DateFormat('HH:mm');
+  final DateFormat formatterDateTime = DateFormat('yyyy-MM-dd HH:mm:ss');
   String sSaveTime = "";
   int iMaxQuantityItem = 1;
 
@@ -325,8 +331,105 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                                   style: Util.txtStyleNormal,
                                 ),
                                 onPressed: () async {
+                                  DateTime dtCurrentDate = DateTime(
+                                      DateTime
+                                          .now()
+                                          .year,
+                                      DateTime
+                                          .now()
+                                          .month,
+                                      DateTime
+                                          .now()
+                                          .day,
+                                      DateTime
+                                          .now()
+                                          .hour,
+                                      DateTime
+                                          .now()
+                                          .minute);
                                   if (lOrder.length > 0) {
-                                    _confirmSaveData();
+                                    // _confirmSaveData();
+                                    var excel = Excel.createExcel();
+
+                                    final directory = await getExternalStorageDirectory();
+
+
+                                    Sheet sheetObject = excel['Sheet1'];
+
+
+                                    List<String> dataList = [
+                                      "#",
+                                      "Name",
+                                      "Barcode",
+                                      "Date",
+                                      "Time"
+                                    ];
+
+                                    sheetObject.insertRowIterables(dataList, 0);
+
+                                    for (int i = 0; i < lOrder.length; i++) {
+                                      String sName = lOrder[i].getName;
+                                      String sBarcode = lOrder[i].getBarcode;
+                                      String sDate = formatterDate.format(
+                                          dtCurrentDate);
+                                      String sTime = formatterTime.format(
+                                          dtCurrentDate);
+
+                                      List<String> dataList = [
+                                        (i + 1).toString(),
+                                        sName,
+                                        sBarcode,
+                                        sDate,
+                                        sTime
+                                      ];
+
+                                      sheetObject.insertRowIterables(
+                                          dataList, i + 1);
+                                    }
+
+                                    CellStyle cellStyle = CellStyle(
+                                        fontFamily: getFontFamily(
+                                            FontFamily.Calibri),
+                                        horizontalAlign: HorizontalAlign
+                                            .Center);
+
+                                    cellStyle.underline =
+                                        Underline.Single; // or Underline.Double
+                                    for (int i = 0; i < 5; i++) {
+                                      var cell = sheetObject.cell(
+                                          CellIndex.indexByColumnRow(
+                                              columnIndex: i, rowIndex: 0));
+                                      cell.cellStyle = cellStyle;
+                                    }
+
+                                    excel.encode().then((onValue) async {
+                                      File file = File(directory.path +
+                                          '/Report ${formatterDateTime.format(
+                                              dtCurrentDate)}.xls')
+                                        ..createSync(recursive: true)
+                                        ..writeAsBytes(onValue);
+                                      print(file.path);
+
+                                      Share.shareFiles([
+                                        '${directory
+                                            .path}/Report ${formatterDateTime
+                                            .format(dtCurrentDate)}.xls'
+                                      ], text: 'รายงาน ${formatterDateTime
+                                          .format(dtCurrentDate)}');
+
+
+                                      // Uint8List bytes = file.readAsBytesSync();
+                                      // var fileShare = ByteData.view(bytes.buffer);
+                                      // await Share.files(
+                                      //     'Report ${formatterDateTime.format(dtCurrentDate)}',
+                                      //     {
+                                      //       'Report ${formatterDateTime.format(dtCurrentDate)}.xls': fileShare.buffer.asUint8List(),
+                                      //     },
+                                      //     '*/*',
+                                      //     text: 'รายงาน ${formatterDateTime.format(dtCurrentDate)}');
+
+
+                                    });
                                   } else {
                                     showDialog(
                                         context: context,

@@ -150,7 +150,6 @@ class _StartScreenState extends State<StartScreen> {
                               items: _dropdownMenuItems,
                               onChanged: onChangeDropdownItem,
                               isExpanded: true,
-                              dropdownColor: Util.mainBlue,
                               elevation: 5,
                               style: Util.txtStyleNormal,
                               icon: FaIcon(FontAwesomeIcons.warehouse,color: Util.mainWhite,),
