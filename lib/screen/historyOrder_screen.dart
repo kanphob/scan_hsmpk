@@ -12,12 +12,20 @@ class HistoryOrder extends StatefulWidget {
 class _HistoryOrderState extends State<HistoryOrder> {
   TextEditingController txtPerID = TextEditingController();
   var finalDate;
+  DateTime dateTime;
 
   void _callDatePicker() async {
     var order = await getDate();
     setState(() {
       finalDate = order;
     });
+  }
+
+
+  @override
+  void initState() {
+    dateTime = DateTime.now();
+    super.initState();
   }
 
   @override
@@ -122,27 +130,20 @@ class _HistoryOrderState extends State<HistoryOrder> {
               children: <Widget>[
                 Util.w50,
                 Expanded(
-                  child: GestureDetector(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Util.mainWhite,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      margin: EdgeInsets.only(top: 5,bottom: 5),
-                      padding: EdgeInsets.all(5),
-                      child: finalDate == null
-                          ? Text(
-                        "Use below button to Select a Date",
-                        textScaleFactor: 2.0,
-                      )
-                          : Text(
-                        "$finalDate",
-                        textScaleFactor: 2.0,
-                      ),
+                  child: Container(
+                    margin: EdgeInsets.only(top: 5,bottom: 5),
+                    decoration: BoxDecoration(
+                      color: Util.mainWhite,
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    onTap: (){
-                      _callDatePicker();
-                    },
+                    child: ListTile(
+                      leading: FaIcon(FontAwesomeIcons.calendar,color: Util.mainBlue,),
+                      title: Text("${dateTime.day} - ${dateTime.month} - ${dateTime.year}",style: Util.txtStyleRecord,),
+                      trailing: FaIcon(FontAwesomeIcons.arrowAltCircleLeft,color: Util.mainBlue,),
+                      onTap: (){
+                        choseDate();
+                      },
+                    ),
                   ),
                 ),
                 Util.w50,
@@ -209,4 +210,20 @@ class _HistoryOrderState extends State<HistoryOrder> {
       },
     );
   }
+
+  Future<void>choseDate()async{
+    DateTime choseDateTime = await showDatePicker(
+        context: context,
+        initialDate: dateTime,
+        firstDate: DateTime(2020),
+        lastDate: DateTime(2030),
+    );
+    if(choseDateTime != null){
+      setState(() {
+        dateTime = choseDateTime;
+      });
+    }
+
+  }
+
 }

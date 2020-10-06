@@ -14,7 +14,7 @@ class DataRepository {
   }
 
   // 3
-  Future<DocumentReference> addProduct(ModelNotify product) {
+  Future<DocumentReference> addProduct(ModelNotify product) async{
     return collection.add(product.toJson());
   }
 
@@ -24,4 +24,9 @@ class DataRepository {
         .document(product.sDocumentReference.documentID)
         .updateData(product.toJson());
   }
+  //5
+  Future<List<Map>> getDataByUserId() async{
+    return List();
+  }
+
 }
