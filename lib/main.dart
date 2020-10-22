@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:scan_hsmpk/funtion/gb.dart';
 import 'package:scan_hsmpk/screen/start_screen.dart';
 import 'package:scan_hsmpk/util/utility.dart';
 import 'package:flutter_line_sdk/flutter_line_sdk.dart';
+import 'package:soundpool/soundpool.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  Globals.soundPool = Soundpool();
   LineSDK.instance.setup("1654959842").then((_) {
     print("LineSDK Prepared");
   });
