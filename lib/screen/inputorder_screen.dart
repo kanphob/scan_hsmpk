@@ -501,7 +501,9 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                 'Scan-HSMPK',
                 style: TextStyle(fontFamily: 'Millionaire', fontSize: 25),
               ),
-              onTap: () {},
+              onTap: () {
+                print(lOrder);
+              },
             ),
           ),
           // Expanded(
@@ -1013,6 +1015,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
             md.setCount = "1";
             md.setName = sPerId;
             lOrder.add(md);
+            setState(() {});
             _playSound();
           }
         }
@@ -1023,6 +1026,9 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
           md.setCount = "1";
           md.setName = sPerId;
           lOrder.add(md);
+          setState(() {
+
+          });
           _playSound();
         }
       }

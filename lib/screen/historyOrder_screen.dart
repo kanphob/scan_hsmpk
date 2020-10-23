@@ -49,7 +49,6 @@ class _HistoryOrderState extends State<HistoryOrder> {
         modelShowData.date = date;
         modelShowData.barcode = barcode;
         listBarcode.add(modelShowData);
-
       });
     });
   }
