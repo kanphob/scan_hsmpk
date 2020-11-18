@@ -53,6 +53,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
   double _rate = 1.0;
   int _alarmSoundStreamId;
 
+
   _getData() async {
     SharedPreferences myPrefs = await SharedPreferences.getInstance();
     final String sId = myPrefs.getString('sPerID');
@@ -351,31 +352,16 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                           ),
                           onPressed: () async {
                             DateTime dtCurrentDate = DateTime(
-                                DateTime
-                                    .now()
-                                    .year,
-                                DateTime
-                                    .now()
-                                    .month,
-                                DateTime
-                                    .now()
-                                    .day,
-                                DateTime
-                                    .now()
-                                    .hour,
-                                DateTime
-                                    .now()
-                                    .minute);
+                                DateTime.now().year,
+                                DateTime.now().month,
+                                DateTime.now().day,
+                                DateTime.now().hour,
+                                DateTime.now().minute);
                             if (lOrder.length > 0) {
                               // _confirmSaveData();
                               var excel = Excel.createExcel();
-
                               final directory = await getExternalStorageDirectory();
-
-
                               Sheet sheetObject = excel['Sheet1'];
-
-
                               List<String> dataList = [
                                 "#",
                                 "Name",
@@ -383,9 +369,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                                 "Date",
                                 "Time"
                               ];
-
                               sheetObject.insertRowIterables(dataList, 0);
-
                               for (int i = 0; i < lOrder.length; i++) {
                                 String sName = lOrder[i].getName;
                                 String sBarcode = lOrder[i].getBarcode;
@@ -393,7 +377,6 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                                     dtCurrentDate);
                                 String sTime = formatterTime.format(
                                     dtCurrentDate);
-
                                 List<String> dataList = [
                                   (i + 1).toString(),
                                   sName,
@@ -401,11 +384,9 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                                   sDate,
                                   sTime
                                 ];
-
                                 sheetObject.insertRowIterables(
                                     dataList, i + 1);
                               }
-
                               CellStyle cellStyle = CellStyle(
                                   fontFamily: getFontFamily(
                                       FontFamily.Calibri),
@@ -420,7 +401,6 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                                         columnIndex: i, rowIndex: 0));
                                 cell.cellStyle = cellStyle;
                               }
-
                               excel.encode().then((onValue) async {
                                 File file = File(directory.path +
                                     '/Report ${formatterDateTime.format(
@@ -428,15 +408,11 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                                   ..createSync(recursive: true)
                                   ..writeAsBytes(onValue);
                                 print(file.path);
-
                                 Share.shareFiles([
                                   '${directory
                                       .path}/Report ${formatterDateTime
                                       .format(dtCurrentDate)}.xls'
-                                ], text: 'รายงาน ${formatterDateTime
-                                    .format(dtCurrentDate)}');
-
-
+                                ], text: 'รายงาน ${formatterDateTime.format(dtCurrentDate)}');
                                 // Uint8List bytes = file.readAsBytesSync();
                                 // var fileShare = ByteData.view(bytes.buffer);
                                 // await Share.files(
@@ -446,9 +422,11 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                                 //     },
                                 //     '*/*',
                                 //     text: 'รายงาน ${formatterDateTime.format(dtCurrentDate)}');
-
-
                               });
+                              lOrder.clear();
+                              setState(() {
+                              });
+                              
                             } else {
                               showDialog(
                                   context: context,
@@ -996,6 +974,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
         .getBarcodeStreamReceiver(
         "#ff6666", "ปิด", true, ScanMode.BARCODE).listen((barcode) {
       // if(barcode != sBarcode){
+      barcode = barcode.subString(0,10);
       sBarcode = barcode;
       // if(sBarcode.contains("TH")) {
 
@@ -1034,6 +1013,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
       }
     }
     );
+
     int iLimitOrder = 0;
     if (amountTxtController.text != null ||
         amountTxtController.text != '') {

@@ -42,7 +42,7 @@ android {
         applicationId "com.example.scan_hsmpk"
         minSdkVersion 23
         targetSdkVersion 28
-        versionCode flutterVersionCode.toInteger()
+        versionCode 2
         versionName flutterVersionName
     }
 

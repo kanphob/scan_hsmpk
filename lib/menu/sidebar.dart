@@ -15,7 +15,7 @@ class SideBar extends StatefulWidget {
 }
 
 class _SideBarState extends State<SideBar> {
-  String sVersionApp = 'HSMPK v.Beta 1.2';
+  String sVersionApp = 'HSMPK v.Beta 1.5';
   String sPerId = " ";
 
   _getData() async {

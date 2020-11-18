@@ -12,7 +12,8 @@ import '../util/utility.dart';
 import '../util/utility.dart';
 import '../util/utility.dart';
 
-class StartScreen extends StatefulWidget {
+class
+StartScreen extends StatefulWidget {
   @override
   _StartScreenState createState() => _StartScreenState();
 }
@@ -132,34 +133,34 @@ class _StartScreenState extends State<StartScreen> {
                   ],
                 ),
                 SizedBox(height: 10,),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Util.w50,
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Util.mainBlue,
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                         padding: Util.padding5,
-                        child: DropdownButtonHideUnderline(
-                            child: DropdownButton(
-                              value: _selectedCompany,
-                              items: _dropdownMenuItems,
-                              onChanged: onChangeDropdownItem,
-                              isExpanded: true,
-                              elevation: 5,
-                              style: Util.txtStyleNormal,
-                              icon: FaIcon(FontAwesomeIcons.warehouse,color: Util.mainWhite,),
-                            ),
-                        ),
-                      ),
-                    ),
-                    Util.w50,
-                  ],
-                ),
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.center,
+                //   crossAxisAlignment: CrossAxisAlignment.center,
+                //   children: <Widget>[
+                //     Util.w50,
+                //     Expanded(
+                //       child: Container(
+                //         decoration: BoxDecoration(
+                //           color: Util.mainBlue,
+                //           borderRadius: BorderRadius.circular(5),
+                //         ),
+                //          padding: Util.padding5,
+                //         child: DropdownButtonHideUnderline(
+                //             child: DropdownButton(
+                //               value: _selectedCompany,
+                //               items: _dropdownMenuItems,
+                //               onChanged: onChangeDropdownItem,
+                //               isExpanded: true,
+                //               elevation: 5,
+                //               style: Util.txtStyleNormal,
+                //               icon: FaIcon(FontAwesomeIcons.warehouse,color: Util.mainWhite,),
+                //             ),
+                //         ),
+                //       ),
+                //     ),
+                //     Util.w50,
+                //   ],
+                // ),
                 Container(
                   margin: EdgeInsets.only(top: 30),
                   child:

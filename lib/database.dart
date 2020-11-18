@@ -1,6 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import 'package:scan_hsmpk/model/modelProduct.dart';
 import 'package:scan_hsmpk/model/modelnotify.dart';
 
 class DataRepository {
@@ -19,9 +17,7 @@ class DataRepository {
 
   // 4
   updateProduct(ModelNotify product) async {
-    await collection
-        .document(product.sDocumentReference.documentID)
-        .updateData(product.toJson());
+    await collection.document(product.sDocumentReference.documentID).updateData(product.toJson());
   }
 
 }
