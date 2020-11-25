@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter_qr_bar_scanner/qr_bar_scanner_camera.dart';
 import 'package:scan_hsmpk/funtion/gb.dart';
+import 'package:scan_hsmpk/screen/scan_page.dart';
 import 'package:share/share.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:file_picker/file_picker.dart';
@@ -48,11 +50,8 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
   String sSaveTime = "";
   int iMaxQuantityItem = 1;
   Future<int> _soundId;
-  Future<int> _cheeringId;
-  double _volume = 1.0;
-  double _rate = 1.0;
+  bool isProcessing = false;
   int _alarmSoundStreamId;
-
 
   _getData() async {
     SharedPreferences myPrefs = await SharedPreferences.getInstance();
@@ -290,8 +289,6 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
           drawer: SideBar(),
           appBar: appBar(),
           body: Container(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topRight,
@@ -305,167 +302,229 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                 ],
               ),
             ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  submitOrder
-                      ? Container(
-                    margin: EdgeInsets.only(top: 20, bottom: 20),
-                    child: _inputUnitOrder(),
-                  )
-                      : Container(),
-                  span(
-                    height: 10,
-                  ),
-                  submitOrder
-                      ? Column(
+            child: Stack(
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: <Widget>[
-                      Container(
-                        margin: EdgeInsets.only(
-                            top: 5, bottom: 5, left: 20, right: 20),
-                        padding: EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5),
-                            border: Border.all(color: Util.mainBlue)),
-                        child: showData(),
-                      ),
-                      SizedBox(
+                      submitOrder
+                          ? Container(
+                              margin: EdgeInsets.only(top: 15,bottom: 10),
+                              child: _inputUnitOrder(),
+                            )
+                          : Container(),
+                      span(
                         height: 10,
                       ),
-                      Container(
-                        padding: EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.shade500,
-                          borderRadius: BorderRadius.circular(15),
-                          border:
-                          Border.all(color: Colors.orange.shade600),
-                        ),
-                        child: FlatButton.icon(
-                          icon: Icon(
-                            Icons.save,
-                            color: Colors.white,
-                          ),
-                          label: Text(
-                            "บันทึก และ ส่งข้อมูล",
-                            style: Util.txtStyleNormal,
-                          ),
-                          onPressed: () async {
-                            DateTime dtCurrentDate = DateTime(
-                                DateTime.now().year,
-                                DateTime.now().month,
-                                DateTime.now().day,
-                                DateTime.now().hour,
-                                DateTime.now().minute);
-                            if (lOrder.length > 0) {
-                              // _confirmSaveData();
-                              var excel = Excel.createExcel();
-                              final directory = await getExternalStorageDirectory();
-                              Sheet sheetObject = excel['Sheet1'];
-                              List<String> dataList = [
-                                "#",
-                                "Name",
-                                "Barcode",
-                                "Date",
-                                "Time"
-                              ];
-                              sheetObject.insertRowIterables(dataList, 0);
-                              for (int i = 0; i < lOrder.length; i++) {
-                                String sName = lOrder[i].getName;
-                                String sBarcode = lOrder[i].getBarcode;
-                                String sDate = formatterDate.format(
-                                    dtCurrentDate);
-                                String sTime = formatterTime.format(
-                                    dtCurrentDate);
-                                List<String> dataList = [
-                                  (i + 1).toString(),
-                                  sName,
-                                  sBarcode,
-                                  sDate,
-                                  sTime
-                                ];
-                                sheetObject.insertRowIterables(
-                                    dataList, i + 1);
-                              }
-                              CellStyle cellStyle = CellStyle(
-                                  fontFamily: getFontFamily(
-                                      FontFamily.Calibri),
-                                  horizontalAlign: HorizontalAlign
-                                      .Center);
-
-                              cellStyle.underline =
-                                  Underline.Single; // or Underline.Double
-                              for (int i = 0; i < 5; i++) {
-                                var cell = sheetObject.cell(
-                                    CellIndex.indexByColumnRow(
-                                        columnIndex: i, rowIndex: 0));
-                                cell.cellStyle = cellStyle;
-                              }
-                              excel.encode().then((onValue) async {
-                                File file = File(directory.path +
-                                    '/Report ${formatterDateTime.format(
-                                        dtCurrentDate)}.xls')
-                                  ..createSync(recursive: true)
-                                  ..writeAsBytes(onValue);
-                                print(file.path);
-                                Share.shareFiles([
-                                  '${directory
-                                      .path}/Report ${formatterDateTime
-                                      .format(dtCurrentDate)}.xls'
-                                ], text: 'รายงาน ${formatterDateTime.format(dtCurrentDate)}');
-                                // Uint8List bytes = file.readAsBytesSync();
-                                // var fileShare = ByteData.view(bytes.buffer);
-                                // await Share.files(
-                                //     'Report ${formatterDateTime.format(dtCurrentDate)}',
-                                //     {
-                                //       'Report ${formatterDateTime.format(dtCurrentDate)}.xls': fileShare.buffer.asUint8List(),
-                                //     },
-                                //     '*/*',
-                                //     text: 'รายงาน ${formatterDateTime.format(dtCurrentDate)}');
-                              });
-                              lOrder.clear();
-                              setState(() {
-                              });
-                              
-                            } else {
-                              showDialog(
-                                  context: context,
-                                  builder: (_) {
-                                    return AlertDialog(
-                                      title: Text(
-                                          "กรุณาเพิ่มรายการอย่างน้อย 1 รายการก่อนทำการบันทึก"),
-                                      actions: <Widget>[
-                                        FlatButton.icon(
-                                            onPressed: () =>
-                                                Navigator.pop(context),
-                                            icon: Icon(
-                                              Icons.clear,
-                                              color: Colors.grey,
-                                            ),
-                                            label: Text(
-                                              "ปิด",
-                                              style: TextStyle(
-                                                  color: Colors.grey),
-                                            ))
+                      submitOrder
+                          ? Column(
+                              children: <Widget>[
+                                Container(
+                                  margin: EdgeInsets.only(
+                                      top: 5, bottom: 5, left: 20, right: 20),
+                                  padding: EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(color: Util.mainBlue)),
+                                  child: Container(
+                                    decoration: new BoxDecoration(
+                                      gradient: new LinearGradient(
+                                          colors: [Colors.white, Colors.green],
+                                          begin:
+                                              const FractionalOffset(0.0, 0.0),
+                                          end: const FractionalOffset(1.0, 1.0),
+                                          stops: [0.0, 1.0],
+                                          tileMode: TileMode.clamp),
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.max,
+                                      children: <Widget>[
+                                        _buildScan(context),
+                                        // _buildGen(context),
+                                        // Padding(
+                                        //   padding: EdgeInsets.only(top: 1.0, bottom: 50),
+                                        //   child: _buildMenuBar(context),
+                                        // ),
                                       ],
-                                    );
-                                  });
-                            }
-                          },
-                        ),
-                      ),
+                                    ),
+                                  ),
+                                  // showData(),
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                              ],
+                            )
+                          : Container(),
+                      SizedBox(height: 10,),
                     ],
-                  )
-                      : Container()
+                  ),
+
+                  Positioned(
+                    bottom: 5,
+                    left: 15,
+                    right: 15,
+                    child: Container(
+                      padding: EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade500,
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(color: Colors.orange.shade600),
+                      ),
+                      child: FlatButton.icon(
+                        icon: Icon(
+                          Icons.save,
+                          color: Colors.white,
+                        ),
+                        label: Text(
+                          "บันทึก และ ส่งข้อมูล",
+                          style: Util.txtStyleNormal,
+                        ),
+                        onPressed: () async {
+                          DateTime dtCurrentDate = DateTime(
+                              DateTime.now().year,
+                              DateTime.now().month,
+                              DateTime.now().day,
+                              DateTime.now().hour,
+                              DateTime.now().minute);
+                          if (lOrder.length > 0) {
+                            // _confirmSaveData();
+                            var excel = Excel.createExcel();
+                            final directory =
+                                await getExternalStorageDirectory();
+                            Sheet sheetObject = excel['Sheet1'];
+                            List<String> dataList = [
+                              "#",
+                              "Name",
+                              "Barcode",
+                              "Date",
+                              "Time"
+                            ];
+                            sheetObject.insertRowIterables(dataList, 0);
+                            for (int i = 0; i < lOrder.length; i++) {
+                              String sName = lOrder[i].getName;
+                              String sBarcode = lOrder[i].getBarcode;
+                              String sDate =
+                                  formatterDate.format(dtCurrentDate);
+                              String sTime =
+                                  formatterTime.format(dtCurrentDate);
+                              List<String> dataList = [
+                                (i + 1).toString(),
+                                sName,
+                                sBarcode,
+                                sDate,
+                                sTime
+                              ];
+                              sheetObject.insertRowIterables(dataList, i + 1);
+                            }
+                            CellStyle cellStyle = CellStyle(
+                                fontFamily: getFontFamily(FontFamily.Calibri),
+                                horizontalAlign: HorizontalAlign.Center);
+
+                            cellStyle.underline =
+                                Underline.Single; // or Underline.Double
+                            for (int i = 0; i < 5; i++) {
+                              var cell = sheetObject.cell(
+                                  CellIndex.indexByColumnRow(
+                                      columnIndex: i, rowIndex: 0));
+                              cell.cellStyle = cellStyle;
+                            }
+                            excel.encode().then((onValue) async {
+                              File file = File(directory.path +
+                                  '/Report ${formatterDateTime.format(dtCurrentDate)}.xls')
+                                ..createSync(recursive: true)
+                                ..writeAsBytes(onValue);
+                              print(file.path);
+                              Share.shareFiles([
+                                '${directory.path}/Report ${formatterDateTime.format(dtCurrentDate)}.xls'
+                              ],
+                                  text:
+                                      'รายงาน ${formatterDateTime.format(dtCurrentDate)}');
+                              // Uint8List bytes = file.readAsBytesSync();
+                              // var fileShare = ByteData.view(bytes.buffer);
+                              // await Share.files(
+                              //     'Report ${formatterDateTime.format(dtCurrentDate)}',
+                              //     {
+                              //       'Report ${formatterDateTime.format(dtCurrentDate)}.xls': fileShare.buffer.asUint8List(),
+                              //     },
+                              //     '*/*',
+                              //     text: 'รายงาน ${formatterDateTime.format(dtCurrentDate)}');
+                            });
+                            lOrder.clear();
+                            setState(() {});
+                          } else {
+                            showDialog(
+                                context: context,
+                                builder: (_) {
+                                  return AlertDialog(
+                                    title: Text(
+                                        "กรุณาเพิ่มรายการอย่างน้อย 1 รายการก่อนทำการบันทึก"),
+                                    actions: <Widget>[
+                                      FlatButton.icon(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          icon: Icon(
+                                            Icons.clear,
+                                            color: Colors.grey,
+                                          ),
+                                          label: Text(
+                                            "ปิด",
+                                            style:
+                                                TextStyle(color: Colors.grey),
+                                          ))
+                                    ],
+                                  );
+                                });
+                          }
+                        },
+                      ),
+                    ),
+                  ),
                 ],
               ),
-            ),
           ),
-          floatingActionButton: submitOrder ? plusOrder() : Container(),
+          // floatingActionButton: submitOrder ? plusOrder() : Container(),
         ),
       ),
     );
   }
+
+  Widget _buildScan(BuildContext context) {
+    return Card(
+      elevation: 2.0,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        child: Column(
+          children: <Widget>[
+            Container(
+              height: 200,
+              width: MediaQuery.of(context).size.width,
+              margin: const EdgeInsets.all(10),
+              child: QRBarScannerCamera(
+                onError: (context, error) => Text(
+                  error.toString(),
+                  style: TextStyle(color: Colors.red),
+                ),
+                qrCodeCallback: (code) async{
+                    startBarcodeScanStream(code);
+                },
+              ),
+            ),
+            // Text(
+            //   _qrInfo,
+            //   style: TextStyle(color: Colors.black26),
+            // ),
+            showData(),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   Widget appBar() {
     return AppBar(
@@ -580,22 +639,22 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
         submitOrder
             ? Container()
             : Row(
-          children: <Widget>[
-            span(width: 50),
-            Expanded(
-              child: RaisedButton(
-                  child: Text(
-                    'ยืนยัน',
-                    style: Util.txtStyleNormal,
+                children: <Widget>[
+                  span(width: 50),
+                  Expanded(
+                    child: RaisedButton(
+                        child: Text(
+                          'ยืนยัน',
+                          style: Util.txtStyleNormal,
+                        ),
+                        onPressed: () {
+                          submitOrder = true;
+                          setState(() {});
+                        }),
                   ),
-                  onPressed: () {
-                    submitOrder = true;
-                    setState(() {});
-                  }),
-            ),
-            span(width: 50),
-          ],
-        ),
+                  span(width: 50),
+                ],
+              ),
       ],
     );
   }
@@ -680,17 +739,22 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     return FloatingActionButton(
       child: FaIcon(FontAwesomeIcons.plus),
       onPressed: () async {
-        int iLimitOrder = 0;
-        if (amountTxtController.text != null ||
-            amountTxtController.text != '') {
-          iLimitOrder = int.parse(amountTxtController.text);
-        }
-        if (lOrder.length == iLimitOrder) {
-          _limitOrder();
-        } else {
-          // scan();
-          startBarcodeScanStream();
-        }
+        // int iLimitOrder = 0;
+        // if (amountTxtController.text != null ||
+        //     amountTxtController.text != '') {
+        //   iLimitOrder = int.parse(amountTxtController.text);
+        // }
+        // if (lOrder.length == iLimitOrder) {
+        //   _limitOrder();
+        // } else {
+        //   // scan();
+        //   startBarcodeScanStream();
+        // }
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => QrBarcodeScreen(),
+            ));
       },
     );
   }
@@ -725,13 +789,16 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
           return AlertDialog(
             title: Text("กรุณาระบุจำนวนพัสดุ"),
             contentPadding: EdgeInsets.all(0),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                SizedBox(height: 10,),
+                SizedBox(
+                  height: 10,
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -968,16 +1035,17 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     );
   }
 
-  startBarcodeScanStream() async {
+  startBarcodeScanStream(String barcode) async {
+    isProcessing = true;
     String sBarcode = "";
-    StreamSubscription<dynamic> sD = FlutterBarcodeScanner
-        .getBarcodeStreamReceiver(
-        "#ff6666", "ปิด", true, ScanMode.BARCODE).listen((barcode) {
+    // StreamSubscription<dynamic> sD =
+    //     FlutterBarcodeScanner.getBarcodeStreamReceiver(
+    //             "#ff6666", "ปิด", true, ScanMode.BARCODE)
+    //         .listen((barcode) {
       // if(barcode != sBarcode){
-      barcode = barcode.subString(0,10);
+      barcode = barcode.substring(0, 10);
       sBarcode = barcode;
       // if(sBarcode.contains("TH")) {
-
 
       if (lOrder.length > 0) {
         bool bHaveData = false;
@@ -994,9 +1062,30 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
             md.setCount = "1";
             md.setName = sPerId;
             lOrder.add(md);
+            isProcessing = false;
             setState(() {});
             _playSound();
           }
+        }else{
+          String sResult = await showDialog(
+              context: context,
+              builder: (_) {
+                return AlertDialog(
+                  title: Text("รหัสบาร์โค้ดซ้ำ.."),
+                  actions: <Widget>[
+                    FlatButton.icon(
+                        onPressed: () => Navigator.pop(context),
+                        icon: Icon(
+                          Icons.close,
+                          color: Colors.grey,
+                        ),
+                        label: Text(
+                          "ปิด",
+                          style: TextStyle(color: Colors.grey),
+                        ))
+                  ],
+                );
+              });
         }
       } else {
         if (sBarcode.contains("TH")) {
@@ -1005,23 +1094,13 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
           md.setCount = "1";
           md.setName = sPerId;
           lOrder.add(md);
-          setState(() {
-
-          });
+          isProcessing = false;
+          setState(() {});
           _playSound();
         }
       }
-    }
-    );
+    // });
 
-    int iLimitOrder = 0;
-    if (amountTxtController.text != null ||
-        amountTxtController.text != '') {
-      iLimitOrder = int.parse(amountTxtController.text);
-      if (lOrder.length == iLimitOrder) {
-        sD.cancel();
-      }
-    }
   }
 
   Future scan() async {
@@ -1080,11 +1159,11 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
         setState(() => this.sBarcode = 'Unknown error: $e');
       }
     } on FormatException {
-      setState(() =>
-      this.sBarcode =
-      'null (User returned using the "back"-button before scanning anything. Result)');
+      setState(() => this.sBarcode =
+          'null (User returned using the "back"-button before scanning anything. Result)');
     } catch (e) {
       setState(() => this.sBarcode = 'Unknown error: $e');
     }
   }
+
 }
