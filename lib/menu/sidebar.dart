@@ -15,7 +15,7 @@ class SideBar extends StatefulWidget {
 }
 
 class _SideBarState extends State<SideBar> {
-  String sVersionApp = 'HSMPK v.Beta 1.5';
+  String sVersionApp = 'HSMPK v.Beta 1.7';
   String sPerId = " ";
 
   _getData() async {
@@ -79,19 +79,19 @@ class _SideBarState extends State<SideBar> {
               //   )
               // ],
             ),
-            Container(
-              child:ListTile(
-                leading: FaIcon(FontAwesomeIcons.home,color: Util.mainOrange,),
-                title: Text('หน้าหลัก',style: Util.txtStyleSidebar,),
-                onTap: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => InputOrderScreen(),));
-                },
-              ),
-            ),
-            Divider(
-              color: Util.halfOrange,
-              height: 0,
-            ),
+            // Container(
+            //   child:ListTile(
+            //     leading: FaIcon(FontAwesomeIcons.home,color: Util.mainOrange,),
+            //     title: Text('หน้าหลัก',style: Util.txtStyleSidebar,),
+            //     onTap: (){
+            //       Navigator.push(context, MaterialPageRoute(builder: (context) => InputOrderScreen(),));
+            //     },
+            //   ),
+            // ),
+            // Divider(
+            //   color: Util.halfOrange,
+            //   height: 0,
+            // ),
             Container(
               child:ListTile(
                 leading: FaIcon(FontAwesomeIcons.history,color: Util.mainOrange,),
@@ -110,7 +110,7 @@ class _SideBarState extends State<SideBar> {
                 leading: FaIcon(FontAwesomeIcons.usersCog,color: Util.mainOrange,),
                 title: Text('แก้ไขรหัสพนักงาน และ เลือกสาขา',style: Util.txtStyleSidebar,),
                 onTap: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => StartScreen(),));
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => StartScreen(),));
                 },
               ),
             ),

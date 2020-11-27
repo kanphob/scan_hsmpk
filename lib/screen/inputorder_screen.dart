@@ -52,6 +52,8 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
   Future<int> _soundId;
   bool isProcessing = false;
   int _alarmSoundStreamId;
+  bool bShowDialog = false;
+  bool bShowLimitDialog = false;
 
   _getData() async {
     SharedPreferences myPrefs = await SharedPreferences.getInstance();
@@ -204,8 +206,12 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
   }
 
   _limitOrder() {
+    setState(() {
+      bShowLimitDialog = true;
+    });
     return showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return _limitOrderDialog();
       },
@@ -509,8 +515,29 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                   error.toString(),
                   style: TextStyle(color: Colors.red),
                 ),
-                qrCodeCallback: (code) async{
+                qrCodeCallback: (code) {
+                  code = code.substring(0, 10);
+                  if (lOrder.length > 0) {
+                    bool bHaveData = false;
+                    for (int i = 0; i < lOrder.length; i++) {
+                      String sBarcode = lOrder[i].getBarcode;
+                      if (sBarcode == code) {
+                        bHaveData = true;
+                      }
+                    }
+                    if(lOrder.length == iMaxQuantityItem){
+                     if(!bShowLimitDialog) _limitOrder();
+                    }else {
+                      if (!bHaveData) {
+                        startBarcodeScanStream(code);
+                      } else {
+                        if (!bShowDialog) doubleDialog(context);
+                      }
+                    }
+                  } else {
                     startBarcodeScanStream(code);
+                  }
+
                 },
               ),
             ),
@@ -525,6 +552,34 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     );
   }
 
+  Future<dynamic> doubleDialog(BuildContext context){
+    setState(() {
+      bShowDialog = true;
+    });
+    return showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) {
+          return AlertDialog(
+            title: Text("รหัสบาร์โค้ดซ้ำ.."),
+            actions: <Widget>[
+              FlatButton.icon(
+                  onPressed: (){
+                    bShowDialog = false;
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(
+                    Icons.close,
+                    color: Colors.grey,
+                  ),
+                  label: Text(
+                    "ปิด",
+                    style: TextStyle(color: Colors.grey),
+                  ))
+            ],
+          );
+        });
+  }
 
   Widget appBar() {
     return AppBar(
@@ -966,21 +1021,16 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       backgroundColor: Util.mainBlue,
-      // actions: <Widget>[
-      //   RaisedButton(
-      //       color: Util.mainGreen,
-      //       child: Text('ยืนยัน',style: Util.txtStyleNormal,),
-      //       onPressed: () async {
-      //       }
-      //   ),
-      //   RaisedButton(
-      //       color: Util.mainRed,
-      //       child: Text('ยกเลิก',style: Util.txtStyleNormal,),
-      //       onPressed: (){
-      //         Navigator.pop(context);
-      //       }
-      //   ),
-      // ],
+      actions: <Widget>[
+        FlatButton.icon(
+            icon: Icon(Icons.close,color: Colors.grey,),
+            label: Text('ปิด',style: TextStyle(color: Colors.grey),),
+            onPressed: (){
+              bShowLimitDialog = false;
+              Navigator.pop(context);
+            }
+        ),
+      ],
     );
   }
 
@@ -1036,70 +1086,25 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
   }
 
   startBarcodeScanStream(String barcode) async {
+
     isProcessing = true;
     String sBarcode = "";
-    // StreamSubscription<dynamic> sD =
-    //     FlutterBarcodeScanner.getBarcodeStreamReceiver(
-    //             "#ff6666", "ปิด", true, ScanMode.BARCODE)
-    //         .listen((barcode) {
-      // if(barcode != sBarcode){
-      barcode = barcode.substring(0, 10);
-      sBarcode = barcode;
-      // if(sBarcode.contains("TH")) {
 
-      if (lOrder.length > 0) {
-        bool bHaveData = false;
-        for (int i = 0; i < lOrder.length; i++) {
-          String sBarcode = lOrder[i].getBarcode;
-          if (sBarcode == barcode) {
-            bHaveData = true;
-          }
-        }
-        if (!bHaveData) {
-          if (sBarcode.contains("TH")) {
-            ModelNotify md = ModelNotify();
-            md.setBarcode = sBarcode;
-            md.setCount = "1";
-            md.setName = sPerId;
-            lOrder.add(md);
-            isProcessing = false;
-            setState(() {});
-            _playSound();
-          }
-        }else{
-          String sResult = await showDialog(
-              context: context,
-              builder: (_) {
-                return AlertDialog(
-                  title: Text("รหัสบาร์โค้ดซ้ำ.."),
-                  actions: <Widget>[
-                    FlatButton.icon(
-                        onPressed: () => Navigator.pop(context),
-                        icon: Icon(
-                          Icons.close,
-                          color: Colors.grey,
-                        ),
-                        label: Text(
-                          "ปิด",
-                          style: TextStyle(color: Colors.grey),
-                        ))
-                  ],
-                );
-              });
-        }
-      } else {
-        if (sBarcode.contains("TH")) {
-          ModelNotify md = ModelNotify();
-          md.setBarcode = sBarcode;
-          md.setCount = "1";
-          md.setName = sPerId;
-          lOrder.add(md);
-          isProcessing = false;
-          setState(() {});
-          _playSound();
-        }
-      }
-    // });
+    sBarcode = barcode;
+
+    if (sBarcode.contains("TH")) {
+      ModelNotify md = ModelNotify();
+      md.setBarcode = sBarcode;
+      md.setCount = "1";
+      md.setName = sPerId;
+      lOrder.add(md);
+      isProcessing = false;
+      setState(() {});
+      _playSound();
+    }
+
+
+
 
   }
 
