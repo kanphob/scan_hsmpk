@@ -18,6 +18,7 @@ class TxtBox extends StatelessWidget {
   final bool bAutoFocus;
   final List<TextInputFormatter> inputFormatter;
   final Function onChange;
+
   TxtBox({
     Key key,
     this.width,

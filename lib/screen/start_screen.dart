@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:scan_hsmpk/funtion/txtbox.dart';
 import 'package:scan_hsmpk/model/modelProduct.dart';
+import 'package:scan_hsmpk/screen/dialog_check_permission.dart';
 import 'package:scan_hsmpk/screen/inputorder_screen.dart';
 import 'package:scan_hsmpk/util/utility.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,6 +25,7 @@ class _StartScreenState extends State<StartScreen> {
   List<DropdownMenuItem<Company>> _dropdownMenuItems;
   Company _selectedCompany;
   bool _validate = false;
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   _onSave() async {
     SharedPreferences myPrefs = await SharedPreferences.getInstance();
@@ -35,32 +37,45 @@ class _StartScreenState extends State<StartScreen> {
     }
   }
 
-  List<DropdownMenuItem<Company>> buildDropdownMenuItems(List companies) {
-    List<DropdownMenuItem<Company>> items = List();
-    for (Company company in companies) {
-      items.add(
-        DropdownMenuItem(
-          value: company,
-          child: Text(company.name,
-          ),
-        ),
-      );
-    }
-    return items;
+  Future<dynamic> checkInitPassword(BuildContext context)async {
+    await Future.delayed(Duration(milliseconds: 50));
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return CheckPasswordDialog(scaffoldKey: _scaffoldKey,);
+      },
+    );
   }
-  onChangeDropdownItem(Company selectedCompany) {
-    setState(() {
-      _selectedCompany = selectedCompany;
-    });
-  }
+
+  // List<DropdownMenuItem<Company>> buildDropdownMenuItems(List companies) {
+  //   List<DropdownMenuItem<Company>> items = List();
+  //   for (Company company in companies) {
+  //     items.add(
+  //       DropdownMenuItem(
+  //         value: company,
+  //         child: Text(company.name,
+  //         ),
+  //       ),
+  //     );
+  //   }
+  //   return items;
+  // }
+  //
+  // onChangeDropdownItem(Company selectedCompany) {
+  //   setState(() {
+  //     _selectedCompany = selectedCompany;
+  //   });
+  // }
 
   @override
   void initState() {
-    // TODO: implement initState
-    _dropdownMenuItems = buildDropdownMenuItems(_companies);
-    _selectedCompany = _dropdownMenuItems[0].value;
+    checkInitPassword(context);
+    // _dropdownMenuItems = buildDropdownMenuItems(_companies);
+    // _selectedCompany = _dropdownMenuItems[0].value;
     super.initState();
   }
+
   @override
   void dispose() {
     txtPerID.dispose();
@@ -71,6 +86,7 @@ class _StartScreenState extends State<StartScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        key: _scaffoldKey,
         backgroundColor: Colors.transparent,
         body: Container(
           width: MediaQuery.of(context).size.width,
@@ -165,7 +181,7 @@ class _StartScreenState extends State<StartScreen> {
                   margin: EdgeInsets.only(top: 30),
                   child:
                   RaisedButton(
-                    child: Text('เข้าสู่ระบบ',style: Util.txtStyleNormal,),
+                    child: Text('เริ่มต้นใช้งาน',style: Util.txtStyleNormal,),
                     onPressed: () async {
                       if(txtPerID.text.isEmpty){
                         _validate = true;

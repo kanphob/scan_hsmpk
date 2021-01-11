@@ -3,11 +3,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_qr_bar_scanner/qr_bar_scanner_camera.dart';
+import 'package:scan_hsmpk/dialog/dialog_exit_app.dart';
 import 'package:scan_hsmpk/funtion/gb.dart';
-import 'package:scan_hsmpk/screen/scan_page.dart';
 import 'package:share/share.dart';
-import 'package:barcode_scan/barcode_scan.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -22,11 +20,9 @@ import 'package:scan_hsmpk/model/modelnotify.dart';
 import 'package:scan_hsmpk/util/utility.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_line_sdk/flutter_line_sdk.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:excel/excel.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:soundpool/soundpool.dart';
 
 class InputOrderScreen extends StatefulWidget {
@@ -54,6 +50,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
   int _alarmSoundStreamId;
   bool bShowDialog = false;
   bool bShowLimitDialog = false;
+  String sBanner = "Scan-HSMPK Message";
 
   _getData() async {
     SharedPreferences myPrefs = await SharedPreferences.getInstance();
@@ -68,7 +65,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     _getData();
     _soundId = _loadSound();
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      _dialogQuantitySet();
+      _dialogQuanlitySet();
     });
     super.initState();
   }
@@ -83,118 +80,6 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     _alarmSoundStreamId = await Globals.soundPool.play(_alarmSound);
   }
 
-  Future<bool> _saveData() async {
-    if (lOrder.length > 0) {
-      DateTime dtCurrentDate = DateTime(
-          DateTime.now().year,
-          DateTime.now().month,
-          DateTime.now().day,
-          DateTime.now().hour,
-          DateTime.now().minute);
-      for (int i = 0; i < lOrder.length; i++) {
-        lOrder[i].setTotalItem = lOrder.length.toString();
-        lOrder[i].setDate = formatterDate.format(dtCurrentDate);
-        lOrder[i].setTime = formatterTime.format(dtCurrentDate);
-        sSaveTime = formatterTime.format(dtCurrentDate);
-        lOrder[i].sFullDateTime = dtCurrentDate.toString();
-        lOrder[i].setTotalItem = lOrder.length.toString();
-        lOrder[i].sIndex = (i + 1).toString();
-        await repository.addProduct(lOrder[i]);
-      }
-      return true;
-    } else {
-      showDialog(
-          context: context,
-          builder: (_) {
-            return AlertDialog(
-              backgroundColor: Util.mainBlue,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              title: Text(
-                "คุณยังไม่ได้ทำการเพิ่มสินค้า",
-                style: Util.txtStyleNormal,
-              ),
-            );
-          });
-      return false;
-    }
-  }
-
-  Future<int> sendMsg(String title) async {
-    final uri = 'https://notify-api.line.me/api/notify';
-
-    http.Response response = await http.post(
-      uri,
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Authorization": "Bearer cqJfwRExjZfR9aAZPTFJuAu0wmKNYvh0kO2iwLRIQcE",
-      },
-      body: {
-        "message": title,
-      },
-    );
-  }
-
-  Future getAccessToken() async {
-    try {
-      final result = await LineSDK.instance.currentAccessToken;
-      return result.value;
-    } on PlatformException catch (e) {
-      print(e.message);
-    }
-  }
-
-  void startLineLogin() async {
-    try {
-      final result = await LineSDK.instance.login(scopes: ["profile"]);
-      print(result.toString());
-      var accesstoken = await getAccessToken();
-      var displayname = result.userProfile.displayName;
-      var statusmessage = result.userProfile.statusMessage;
-      var imgUrl = result.userProfile.pictureUrl;
-      var userId = result.userProfile.userId;
-
-      print("AccessToken> " + accesstoken);
-      print("DisplayName> " + displayname);
-      print("StatusMessage> " + statusmessage);
-      print("ProfileURL> " + imgUrl);
-      print("userId> " + userId);
-    } on PlatformException catch (e) {
-      print(e);
-      switch (e.code.toString()) {
-        case "CANCEL":
-          print("User Cancel the login");
-          break;
-        case "AUTHENTICATION_AGENT_ERROR":
-          print("User decline the login");
-          break;
-        default:
-          print("Unknown but failed to login");
-          break;
-      }
-    }
-  }
-
-  Future _signInLine() async {
-    try {
-      final result = await LineSDK.instance.login();
-      // user id -> result.userProfile.userId
-      // user name -> result.userProfile.displayName
-      // user avatar -> result.userProfile.pictureUrl
-      return result;
-    } on PlatformException catch (e) {
-      print("ไม่สามารเปิดใช้งานได้");
-    }
-  }
-
-  _confirmSaveData() async {
-    String sResult = await showDialog(
-      context: context,
-      builder: (_) {
-        return _dialogConfirm();
-      },
-    );
-  }
 
   _confirmDeleteData(String sBarcode) {
     return showDialog(
@@ -227,58 +112,108 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     );
   }
 
-  _saveAndPushDataToLine() async {
-    String sName = "";
-    String sTotalCount = "";
-    List<String> listBarcode = new List();
-    bool bSaveSuccess = await _saveData();
-    if (bSaveSuccess) {
-      await firebaseStore
-          .collection("products")
-          .orderBy('index')
-          .getDocuments()
-          .then((querySnapshot) {
-        querySnapshot.documents.where((element) {
-          if (element.data['time'] == sSaveTime) {
-            return true;
-          } else {
-            return false;
-          }
-        }).forEach((result) {
-          sName = result.data['name'];
-          sTotalCount = result.data['total'];
-          listBarcode.add(result.data['barcode']);
-        });
-      });
+  startBarcodeScanStream(String barcode) async {
+    isProcessing = true;
+    String sBarcode = "";
+    sBarcode = barcode;
+    if (sBarcode.contains("TH")) {
+      ModelNotify md = ModelNotify();
+      md.setBarcode = sBarcode;
+      md.setCount = "1";
+      md.setName = sPerId;
+      lOrder.add(md);
+      isProcessing = false;
+      setState(() {});
+      _playSound();
+    }
+  }
 
-      String decodeListBarcode = "";
-      for (int i = 0; i < listBarcode.length; i++) {
-        if (i == 0) {
-          decodeListBarcode += (listBarcode[i]);
-        } else {
-          decodeListBarcode += ("\n" + listBarcode[i]);
-        }
+  _saveExportToExcel() async{
+    DateTime dtCurrentDate = DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+        DateTime.now().day,
+        DateTime.now().hour,
+        DateTime.now().minute);
+    if (lOrder.length > 0) {
+      // _confirmSaveData();
+      var excel = Excel.createExcel();
+      final directory =
+      await getExternalStorageDirectory();
+      Sheet sheetObject = excel['Sheet1'];
+      List<String> dataList = [
+        "#",
+        "Name",
+        "Barcode",
+        "Date",
+        "Time"
+      ];
+      sheetObject.insertRowIterables(dataList, 0);
+      for (int i = 0; i < lOrder.length; i++) {
+        String sName = lOrder[i].getName;
+        String sBarcode = lOrder[i].getBarcode;
+        String sDate =
+        formatterDate.format(dtCurrentDate);
+        String sTime =
+        formatterTime.format(dtCurrentDate);
+        List<String> dataList = [
+          (i + 1).toString(),
+          sName,
+          sBarcode,
+          sDate,
+          sTime
+        ];
+        sheetObject.insertRowIterables(dataList, i + 1);
       }
+      CellStyle cellStyle = CellStyle(
+          fontFamily: getFontFamily(FontFamily.Calibri),
+          horizontalAlign: HorizontalAlign.Center);
 
-      String sResultTxt =
-          "รหัสพนักงาน: $sName\nจำนวนออเดอร์: $sTotalCount ชิ้น\n$decodeListBarcode";
-
+      cellStyle.underline =
+          Underline.Single; // or Underline.Double
+      for (int i = 0; i < 5; i++) {
+        var cell = sheetObject.cell(
+            CellIndex.indexByColumnRow(
+                columnIndex: i, rowIndex: 0));
+        cell.cellStyle = cellStyle;
+      }
+      excel.encode().then((onValue) async {
+        File file = File(directory.path +
+            '/Report ${formatterDateTime.format(dtCurrentDate)}.xls')
+          ..createSync(recursive: true)
+          ..writeAsBytes(onValue);
+        print(file.path);
+        Share.shareFiles([
+          '${directory.path}/Report ${formatterDateTime.format(dtCurrentDate)}.xls'
+        ],
+            text:
+            'รายงาน ${formatterDateTime.format(dtCurrentDate)}');
+      });
       lOrder.clear();
+      setState(() {});
+    } else {
       showDialog(
           context: context,
           builder: (_) {
             return AlertDialog(
-              backgroundColor: Util.mainBlue,
               title: Text(
-                "บันทึกสำเร็จ! ระบบจะส่งข้อความแจ้งเตือนไปในอีกสักครู่",
-                style: Util.txtStyleNormal,
-              ),
+                  "กรุณาเพิ่มรายการอย่างน้อย 1 รายการก่อนทำการบันทึก"),
+              actions: <Widget>[
+                FlatButton.icon(
+                    onPressed: () =>
+                        Navigator.pop(context),
+                    icon: Icon(
+                      Icons.clear,
+                      color: Colors.grey,
+                    ),
+                    label: Text(
+                      "ปิด",
+                      style:
+                      TextStyle(color: Colors.grey),
+                    ))
+              ],
             );
           });
-      await sendMsg(sResultTxt);
-      Future.delayed(Duration(seconds: 2), () {
-        Navigator.pop(context, 'success');
-      });
     }
   }
 
@@ -287,7 +222,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     return WillPopScope(
       onWillPop: () async => showDialog(
         context: context,
-        builder: (context) => willPop(),
+        builder: (context) => DialogExitApp(),
       ),
       child: SafeArea(
         child: Scaffold(
@@ -295,6 +230,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
           drawer: SideBar(),
           appBar: appBar(),
           body: Container(
+            height: MediaQuery.of(context).size.height,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topRight,
@@ -308,277 +244,66 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                 ],
               ),
             ),
-            child: Stack(
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: <Widget>[
-                      submitOrder
-                          ? Container(
-                              margin: EdgeInsets.only(top: 15,bottom: 10),
-                              child: _inputUnitOrder(),
-                            )
-                          : Container(),
-                      span(
-                        height: 10,
-                      ),
-                      submitOrder
-                          ? Column(
-                              children: <Widget>[
-                                Container(
-                                  margin: EdgeInsets.only(
-                                      top: 5, bottom: 5, left: 20, right: 20),
-                                  padding: EdgeInsets.all(5),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(5),
-                                      border: Border.all(color: Util.mainBlue)),
-                                  child: Container(
-                                    decoration: new BoxDecoration(
-                                      gradient: new LinearGradient(
-                                          colors: [Colors.white, Colors.green],
-                                          begin:
-                                              const FractionalOffset(0.0, 0.0),
-                                          end: const FractionalOffset(1.0, 1.0),
-                                          stops: [0.0, 1.0],
-                                          tileMode: TileMode.clamp),
-                                    ),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.max,
-                                      children: <Widget>[
-                                        _buildScan(context),
-                                        // _buildGen(context),
-                                        // Padding(
-                                        //   padding: EdgeInsets.only(top: 1.0, bottom: 50),
-                                        //   child: _buildMenuBar(context),
-                                        // ),
-                                      ],
-                                    ),
-                                  ),
-                                  // showData(),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                              ],
-                            )
-                          : Container(),
-                      SizedBox(height: 10,),
-                    ],
+            child: SingleChildScrollView(
+              physics: BouncingScrollPhysics(),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: <Widget>[
+                  submitOrder
+                      ? Container(
+                          margin: EdgeInsets.only(top: 15,bottom: 10),
+                          child: _inputUnitOrder(),
+                        )
+                      : Container(),
+                  span(
+                    height: 10,
                   ),
-
-                  Positioned(
-                    bottom: 5,
-                    left: 15,
-                    right: 15,
-                    child: Container(
-                      padding: EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.shade500,
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(color: Colors.orange.shade600),
-                      ),
-                      child: FlatButton.icon(
-                        icon: Icon(
-                          Icons.save,
-                          color: Colors.white,
-                        ),
-                        label: Text(
-                          "บันทึก และ ส่งข้อมูล",
-                          style: Util.txtStyleNormal,
-                        ),
-                        onPressed: () async {
-                          DateTime dtCurrentDate = DateTime(
-                              DateTime.now().year,
-                              DateTime.now().month,
-                              DateTime.now().day,
-                              DateTime.now().hour,
-                              DateTime.now().minute);
-                          if (lOrder.length > 0) {
-                            // _confirmSaveData();
-                            var excel = Excel.createExcel();
-                            final directory =
-                                await getExternalStorageDirectory();
-                            Sheet sheetObject = excel['Sheet1'];
-                            List<String> dataList = [
-                              "#",
-                              "Name",
-                              "Barcode",
-                              "Date",
-                              "Time"
-                            ];
-                            sheetObject.insertRowIterables(dataList, 0);
-                            for (int i = 0; i < lOrder.length; i++) {
-                              String sName = lOrder[i].getName;
-                              String sBarcode = lOrder[i].getBarcode;
-                              String sDate =
-                                  formatterDate.format(dtCurrentDate);
-                              String sTime =
-                                  formatterTime.format(dtCurrentDate);
-                              List<String> dataList = [
-                                (i + 1).toString(),
-                                sName,
-                                sBarcode,
-                                sDate,
-                                sTime
-                              ];
-                              sheetObject.insertRowIterables(dataList, i + 1);
-                            }
-                            CellStyle cellStyle = CellStyle(
-                                fontFamily: getFontFamily(FontFamily.Calibri),
-                                horizontalAlign: HorizontalAlign.Center);
-
-                            cellStyle.underline =
-                                Underline.Single; // or Underline.Double
-                            for (int i = 0; i < 5; i++) {
-                              var cell = sheetObject.cell(
-                                  CellIndex.indexByColumnRow(
-                                      columnIndex: i, rowIndex: 0));
-                              cell.cellStyle = cellStyle;
-                            }
-                            excel.encode().then((onValue) async {
-                              File file = File(directory.path +
-                                  '/Report ${formatterDateTime.format(dtCurrentDate)}.xls')
-                                ..createSync(recursive: true)
-                                ..writeAsBytes(onValue);
-                              print(file.path);
-                              Share.shareFiles([
-                                '${directory.path}/Report ${formatterDateTime.format(dtCurrentDate)}.xls'
-                              ],
-                                  text:
-                                      'รายงาน ${formatterDateTime.format(dtCurrentDate)}');
-                              // Uint8List bytes = file.readAsBytesSync();
-                              // var fileShare = ByteData.view(bytes.buffer);
-                              // await Share.files(
-                              //     'Report ${formatterDateTime.format(dtCurrentDate)}',
-                              //     {
-                              //       'Report ${formatterDateTime.format(dtCurrentDate)}.xls': fileShare.buffer.asUint8List(),
-                              //     },
-                              //     '*/*',
-                              //     text: 'รายงาน ${formatterDateTime.format(dtCurrentDate)}');
-                            });
-                            lOrder.clear();
-                            setState(() {});
-                          } else {
-                            showDialog(
-                                context: context,
-                                builder: (_) {
-                                  return AlertDialog(
-                                    title: Text(
-                                        "กรุณาเพิ่มรายการอย่างน้อย 1 รายการก่อนทำการบันทึก"),
-                                    actions: <Widget>[
-                                      FlatButton.icon(
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                          icon: Icon(
-                                            Icons.clear,
-                                            color: Colors.grey,
-                                          ),
-                                          label: Text(
-                                            "ปิด",
-                                            style:
-                                                TextStyle(color: Colors.grey),
-                                          ))
-                                    ],
-                                  );
-                                });
-                          }
-                        },
-                      ),
-                    ),
-                  ),
+                  submitOrder
+                      ? Column(
+                          children: <Widget>[
+                            Container(
+                              margin: EdgeInsets.only(
+                                  top: 5, bottom: 5, left: 20, right: 20),
+                              padding: EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: Util.mainBlue)),
+                              child: Container(
+                                // decoration: BoxDecoration(
+                                //   gradient: LinearGradient(
+                                //       colors: [
+                                //         Colors.white, Colors.green
+                                //       ],
+                                //       begin: const FractionalOffset(0.0, 0.0),
+                                //       end: const FractionalOffset(1.0, 1.0),
+                                //       stops: [0.0, 1.0],
+                                //       tileMode: TileMode.clamp),
+                                // ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.max,
+                                  children: <Widget>[
+                                    _buildScan(context),
+                                  ],
+                                ),
+                              ),
+                              // showData(),
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                          ],
+                        )
+                      : Container(),
+                  SizedBox(height: 10,),
                 ],
               ),
+            ),
           ),
+          floatingActionButton: saveBtn(),
           // floatingActionButton: submitOrder ? plusOrder() : Container(),
         ),
       ),
     );
-  }
-
-  Widget _buildScan(BuildContext context) {
-    return Card(
-      elevation: 2.0,
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Container(
-        width: MediaQuery.of(context).size.width,
-        child: Column(
-          children: <Widget>[
-            Container(
-              height: 200,
-              width: MediaQuery.of(context).size.width,
-              margin: const EdgeInsets.all(10),
-              child: QRBarScannerCamera(
-                onError: (context, error) => Text(
-                  error.toString(),
-                  style: TextStyle(color: Colors.red),
-                ),
-                qrCodeCallback: (code) {
-                  code = code.substring(0, 10);
-                  if (lOrder.length > 0) {
-                    bool bHaveData = false;
-                    for (int i = 0; i < lOrder.length; i++) {
-                      String sBarcode = lOrder[i].getBarcode;
-                      if (sBarcode == code) {
-                        bHaveData = true;
-                      }
-                    }
-                    if(lOrder.length == iMaxQuantityItem){
-                     if(!bShowLimitDialog) _limitOrder();
-                    }else {
-                      if (!bHaveData) {
-                        startBarcodeScanStream(code);
-                      } else {
-                        if (!bShowDialog) doubleDialog(context);
-                      }
-                    }
-                  } else {
-                    startBarcodeScanStream(code);
-                  }
-
-                },
-              ),
-            ),
-            // Text(
-            //   _qrInfo,
-            //   style: TextStyle(color: Colors.black26),
-            // ),
-            showData(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<dynamic> doubleDialog(BuildContext context){
-    setState(() {
-      bShowDialog = true;
-    });
-    return showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) {
-          return AlertDialog(
-            title: Text("รหัสบาร์โค้ดซ้ำ.."),
-            actions: <Widget>[
-              FlatButton.icon(
-                  onPressed: (){
-                    bShowDialog = false;
-                    Navigator.pop(context);
-                  },
-                  icon: Icon(
-                    Icons.close,
-                    color: Colors.grey,
-                  ),
-                  label: Text(
-                    "ปิด",
-                    style: TextStyle(color: Colors.grey),
-                  ))
-            ],
-          );
-        });
   }
 
   Widget appBar() {
@@ -612,6 +337,59 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
           //   ),
           // ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildScan(BuildContext context) {
+    return Card(
+      elevation: 5.0,
+      color: Util.mainGray,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        child: Column(
+          children: <Widget>[
+            Container(
+              height: 200,
+              width: MediaQuery.of(context).size.width,
+              margin: const EdgeInsets.all(10),
+              child: QRBarScannerCamera(
+                onError: (context, error) => Text(
+                  error.toString(),
+                  style: TextStyle(color: Colors.red),
+                ),
+                qrCodeCallback: (code) {
+                  code = code.substring(0, 15);
+                  if (lOrder.length > 0) {
+                    bool bHaveData = false;
+                    for (int i = 0; i < lOrder.length; i++) {
+                      String sBarcode = lOrder[i].getBarcode;
+                      if (sBarcode == code) {
+                        bHaveData = true;
+                      }
+                    }
+                    if(lOrder.length == iMaxQuantityItem){
+                     if(!bShowLimitDialog) _limitOrder();
+                    }else {
+                      if (!bHaveData) {
+                        startBarcodeScanStream(code);
+                      } else {
+                        if (!bShowDialog) doubleDialog(context);
+                      }
+                    }
+                  } else {
+                    startBarcodeScanStream(code);
+                  }
+                },
+              ),
+            ),
+            showData(),
+          ],
+        ),
       ),
     );
   }
@@ -739,24 +517,27 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
               color: Colors.orange,
             ),
           ),
-          ListView.builder(
-              shrinkWrap: true,
-              physics: BouncingScrollPhysics(),
-              itemCount: lOrder.length,
-              itemBuilder: (context, index) {
-                return Column(
-                  children: <Widget>[
-                    _listOrder(lOrder[index], index),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: Divider(
-                        height: 0,
-                        color: Colors.orange,
+          Container(
+            height: MediaQuery.of(context).size.height/5,
+            child: ListView.builder(
+                shrinkWrap: true,
+                physics: BouncingScrollPhysics(),
+                itemCount: lOrder.length,
+                itemBuilder: (context, index) {
+                  return Column(
+                    children: <Widget>[
+                      _listOrder(lOrder[index], index),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        child: Divider(
+                          height: 0,
+                          color: Colors.orange,
+                        ),
                       ),
-                    ),
-                  ],
-                );
-              }),
+                    ],
+                  );
+                }),
+          ),
           ListTile(
             trailing: Text(
               'จำนวนทั้งหมด ' + lOrder.length.toString() + ' ชิ้น.',
@@ -790,54 +571,8 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     );
   }
 
-  Widget plusOrder() {
-    return FloatingActionButton(
-      child: FaIcon(FontAwesomeIcons.plus),
-      onPressed: () async {
-        // int iLimitOrder = 0;
-        // if (amountTxtController.text != null ||
-        //     amountTxtController.text != '') {
-        //   iLimitOrder = int.parse(amountTxtController.text);
-        // }
-        // if (lOrder.length == iLimitOrder) {
-        //   _limitOrder();
-        // } else {
-        //   // scan();
-        //   startBarcodeScanStream();
-        // }
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => QrBarcodeScreen(),
-            ));
-      },
-    );
-  }
-
-  Widget willPop() {
-    return AlertDialog(
-      elevation: 5,
-      title: Text('คุณต้องการออกจากแอบพลิเคชั่น'),
-      titleTextStyle: TextStyle(fontSize: 20, color: Colors.black),
-      actions: <Widget>[
-        RaisedButton(
-          child: Text('ใช่'),
-          onPressed: () {
-            SystemNavigator.pop();
-          },
-        ),
-        RaisedButton(
-          child: Text('ไม่'),
-          onPressed: () {
-            Navigator.of(context).pop(false);
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _dialogQuantitySet() {
-    showDialog(
+  Widget _dialogQuanlitySet() {
+     showDialog(
         barrierDismissible: false,
         context: context,
         builder: (_) {
@@ -944,43 +679,11 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
         });
   }
 
-  Widget _dialogConfirm() {
-    return AlertDialog(
-      content: Text(
-        'คุณแน่ใจหรือไม่ว่าข้อมูลครบถ้วนแล้ว ถ้าแน่ใจกดปุ่ม "ยืนยัน" เพื่อส่งข้อมูล',
-        style: Util.txtStyleNormal,
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      backgroundColor: Util.mainBlue,
-      actions: <Widget>[
-        RaisedButton(
-            color: Util.mainGreen,
-            child: Text(
-              'ยืนยัน',
-              style: Util.txtStyleNormal,
-            ),
-            onPressed: () async {
-              Navigator.pop(context);
-              String sResult = await _saveAndPushDataToLine();
-              if (sResult == 'success') {
-                setState(() {});
-              }
-            }),
-        RaisedButton(
-            color: Util.mainRed,
-            child: Text(
-              'ยกเลิก',
-              style: Util.txtStyleNormal,
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-            }),
-      ],
-    );
-  }
-
   Widget _dialogDelete(String sBarcode) {
     return AlertDialog(
+      title: Text(sBanner,
+        style: Util.txtStyleHeaderDialog,
+      ),
       content: Text(
         'คุณแน่ใจหรือไม่ว่าต้องการลบสินค้ารหัส $sBarcode ถ้าแน่ใจกดปุ่ม "ยืนยัน" เพื่อลบข้อมูล',
         style: Util.txtStyleNormal,
@@ -996,7 +699,6 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
             ),
             onPressed: () async {
               lOrder.removeWhere((item) => item.getBarcode == sBarcode);
-
               Navigator.pop(context);
               setState(() {});
             }),
@@ -1015,9 +717,14 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
 
   Widget _limitOrderDialog() {
     return AlertDialog(
+      title: Text(sBanner,
+        style: Util.txtStyleHeaderDialog,
+      ),
       content: Text(
         'จำนวนพัสดุของคุณครบจำนวนแล้ว',
         style: Util.txtStyleNormal,
+        textAlign: TextAlign.center,
+        overflow: TextOverflow.fade,
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       backgroundColor: Util.mainBlue,
@@ -1025,6 +732,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
         FlatButton.icon(
             icon: Icon(Icons.close,color: Colors.grey,),
             label: Text('ปิด',style: TextStyle(color: Colors.grey),),
+            color: Util.mainGray,
             onPressed: (){
               bShowLimitDialog = false;
               Navigator.pop(context);
@@ -1042,7 +750,9 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
       ),
       content: TxtBox(
         bAutoFocus: true,
-        inputFormatter: [WhitelistingTextInputFormatter.digitsOnly],
+        inputFormatter: [
+          FilteringTextInputFormatter.allow(RegExp('[0-9]')),
+        ],
         ctrl: amountTempTxtController,
         textAlign: TextAlign.center,
         kbType: TextInputType.number,
@@ -1075,6 +785,56 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     );
   }
 
+  Future<dynamic> doubleDialog(BuildContext context){
+    setState(() {
+      bShowDialog = true;
+    });
+    return showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) {
+          return AlertDialog(
+            title: Text(sBanner,
+              style: Util.txtStyleHeaderDialog,
+            ),
+            content: Text(
+              'รหัสบาร์โค้ดซ้ำ...',
+              style: Util.txtStyleNormal,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.fade,
+            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            backgroundColor: Util.mainBlue,
+            actions: <Widget>[
+              FlatButton.icon(
+                  icon: Icon(Icons.close,color: Colors.grey,),
+                  label: Text('ปิด',style: TextStyle(color: Colors.grey),),
+                  color: Util.mainGray,
+                  onPressed: (){
+                    bShowDialog = false;
+                    Navigator.pop(context);
+                  }
+              ),
+            ],
+          );
+        });
+  }
+
+  Widget saveBtn(){
+    return FloatingActionButton.extended(
+        onPressed: _saveExportToExcel,
+        isExtended: true,
+        icon: Icon(
+        Icons.save,
+        color: Colors.white,
+      ),
+        label: Text(
+        "บันทึก และ ส่งข้อมูล",
+        style: Util.txtStyleNormal,
+      ),
+    );
+  }
+
   Widget span({
     double width,
     double height,
@@ -1085,90 +845,69 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
     );
   }
 
-  startBarcodeScanStream(String barcode) async {
-
-    isProcessing = true;
-    String sBarcode = "";
-
-    sBarcode = barcode;
-
-    if (sBarcode.contains("TH")) {
-      ModelNotify md = ModelNotify();
-      md.setBarcode = sBarcode;
-      md.setCount = "1";
-      md.setName = sPerId;
-      lOrder.add(md);
-      isProcessing = false;
-      setState(() {});
-      _playSound();
-    }
 
 
-
-
-  }
-
-  Future scan() async {
-    try {
-      String barcode = "";
-
-      if (lOrder.length > 0) {
-        bool bHaveData = false;
-        for (int i = 0; i < lOrder.length; i++) {
-          String sBarcode = lOrder[i].getBarcode;
-          if (sBarcode == barcode) {
-            bHaveData = true;
-          }
-        }
-        if (!bHaveData) {
-          ModelNotify md = ModelNotify();
-          md.setBarcode = barcode;
-          md.setCount = "1";
-          md.setName = sPerId;
-          lOrder.add(md);
-        } else {
-          showDialog(
-              context: context,
-              builder: (_) {
-                return AlertDialog(
-                  title: Text("รหัสบาร์โค้ดซ้ำ.."),
-                  actions: <Widget>[
-                    FlatButton.icon(
-                        onPressed: () => Navigator.pop(context),
-                        icon: Icon(
-                          Icons.close,
-                          color: Colors.grey,
-                        ),
-                        label: Text(
-                          "ปิด",
-                          style: TextStyle(color: Colors.grey),
-                        ))
-                  ],
-                );
-              });
-        }
-      } else {
-        ModelNotify md = ModelNotify();
-        md.setBarcode = barcode;
-        md.setCount = "1";
-        md.setName = sPerId;
-        lOrder.add(md);
-      }
-      setState(() {});
-    } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
-        setState(() {
-          this.sBarcode = 'The user did not grant the camera permission!';
-        });
-      } else {
-        setState(() => this.sBarcode = 'Unknown error: $e');
-      }
-    } on FormatException {
-      setState(() => this.sBarcode =
-          'null (User returned using the "back"-button before scanning anything. Result)');
-    } catch (e) {
-      setState(() => this.sBarcode = 'Unknown error: $e');
-    }
-  }
+  // Future scan() async {
+  //   try {
+  //     String barcode = "";
+  //
+  //     if (lOrder.length > 0) {
+  //       bool bHaveData = false;
+  //       for (int i = 0; i < lOrder.length; i++) {
+  //         String sBarcode = lOrder[i].getBarcode;
+  //         if (sBarcode == barcode) {
+  //           bHaveData = true;
+  //         }
+  //       }
+  //       if (!bHaveData) {
+  //         ModelNotify md = ModelNotify();
+  //         md.setBarcode = barcode;
+  //         md.setCount = "1";
+  //         md.setName = sPerId;
+  //         lOrder.add(md);
+  //       } else {
+  //         showDialog(
+  //             context: context,
+  //             builder: (_) {
+  //               return AlertDialog(
+  //                 title: Text("รหัสบาร์โค้ดซ้ำ.."),
+  //                 actions: <Widget>[
+  //                   FlatButton.icon(
+  //                       onPressed: () => Navigator.pop(context),
+  //                       icon: Icon(
+  //                         Icons.close,
+  //                         color: Colors.grey,
+  //                       ),
+  //                       label: Text(
+  //                         "ปิด",
+  //                         style: TextStyle(color: Colors.grey),
+  //                       ))
+  //                 ],
+  //               );
+  //             });
+  //       }
+  //     } else {
+  //       ModelNotify md = ModelNotify();
+  //       md.setBarcode = barcode;
+  //       md.setCount = "1";
+  //       md.setName = sPerId;
+  //       lOrder.add(md);
+  //     }
+  //     setState(() {});
+  //   } on PlatformException catch (e) {
+  //     if (e.code == BarcodeScanner.CameraAccessDenied) {
+  //       setState(() {
+  //         this.sBarcode = 'The user did not grant the camera permission!';
+  //       });
+  //     } else {
+  //       setState(() => this.sBarcode = 'Unknown error: $e');
+  //     }
+  //   } on FormatException {
+  //     setState(() => this.sBarcode =
+  //         'null (User returned using the "back"-button before scanning anything. Result)');
+  //   } catch (e) {
+  //     setState(() => this.sBarcode = 'Unknown error: $e');
+  //   }
+  // }
 
 }

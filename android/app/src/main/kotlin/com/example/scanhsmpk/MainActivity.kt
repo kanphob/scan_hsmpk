@@ -1,4 +1,4 @@
-package com.example.scan_hsmpk
+package com.app.scan_hsmpk.pro
 
 import io.flutter.embedding.android.FlutterActivity
 

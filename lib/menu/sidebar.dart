@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:scan_hsmpk/funtion/historydialog.dart';
-import 'package:scan_hsmpk/screen/inputorder_screen.dart';
 import 'package:scan_hsmpk/screen/start_screen.dart';
 import 'package:scan_hsmpk/util/utility.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,7 +14,7 @@ class SideBar extends StatefulWidget {
 }
 
 class _SideBarState extends State<SideBar> {
-  String sVersionApp = 'HSMPK v.Beta 1.7';
+  String sVersionApp = 'HSMPK v.Beta 2.1';
   String sPerId = " ";
 
   _getData() async {

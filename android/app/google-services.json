@@ -10,7 +10,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:988957364293:android:78f460dc8681272183532c",
         "android_client_info": {
-          "package_name": "com.example.scan_hsmpk"
+          "package_name": "com.app.scan_hsmpk.pro"
         }
       },
       "oauth_client": [
@@ -18,7 +18,7 @@
           "client_id": "988957364293-3bc9ah5e4b3e3upc7tehqbv40odfjnvd.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.scan_hsmpk",
+            "package_name": "com.app.scan_hsmpk.pro",
             "certificate_hash": "2dcada568f96b1fc67904a7b902b43ef18fc854c"
           }
         },
