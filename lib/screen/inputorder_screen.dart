@@ -363,27 +363,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                   style: TextStyle(color: Colors.red),
                 ),
                 qrCodeCallback: (code) {
-                  code = code.substring(0, 15);
-                  if (lOrder.length > 0) {
-                    bool bHaveData = false;
-                    for (int i = 0; i < lOrder.length; i++) {
-                      String sBarcode = lOrder[i].getBarcode;
-                      if (sBarcode == code) {
-                        bHaveData = true;
-                      }
-                    }
-                    if(lOrder.length == iMaxQuantityItem){
-                     if(!bShowLimitDialog) _limitOrder();
-                    }else {
-                      if (!bHaveData) {
-                        startBarcodeScanStream(code);
-                      } else {
-                        if (!bShowDialog) doubleDialog(context);
-                      }
-                    }
-                  } else {
-                    startBarcodeScanStream(code);
-                  }
+                  scan(code);
                 },
               ),
             ),
@@ -392,6 +372,30 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
         ),
       ),
     );
+  }
+
+  scan(String code) {
+    code = code.substring(0, 15);
+    if (lOrder.length > 0) {
+      bool bHaveData = false;
+      for (int i = 0; i < lOrder.length; i++) {
+        String sBarcode = lOrder[i].getBarcode;
+        if (sBarcode == code) {
+          bHaveData = true;
+        }
+      }
+      if (lOrder.length == iMaxQuantityItem) {
+        if (!bShowLimitDialog) _limitOrder();
+      } else {
+        if (!bHaveData) {
+          startBarcodeScanStream(code);
+        } else {
+          if (!bShowDialog) doubleDialog(context);
+        }
+      }
+    } else {
+      startBarcodeScanStream(code);
+    }
   }
 
   Widget _inputUnitOrder() {
