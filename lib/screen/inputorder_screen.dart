@@ -362,8 +362,8 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
                   error.toString(),
                   style: TextStyle(color: Colors.red),
                 ),
-                qrCodeCallback: (code) {
-                  scan(code);
+                qrCodeCallback: (code) async {
+                  await scan(code);
                 },
               ),
             ),
@@ -375,7 +375,7 @@ class _InputOrderScreenState extends State<InputOrderScreen> {
   }
 
   scan(String code) {
-    code = code.substring(0, 15);
+    code = code.substring(0, code.length);
     if (lOrder.length > 0) {
       bool bHaveData = false;
       for (int i = 0; i < lOrder.length; i++) {
